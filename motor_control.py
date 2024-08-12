@@ -13,14 +13,15 @@ GPIO.setup(PUL, GPIO.OUT)
 GPIO.setup(DIR, GPIO.OUT)
 
 def run_motor(rotations):
+    total_steps = int(float(rotations) * steps_per_rotation)  # Convert rotations to float first
     GPIO.output(DIR, GPIO.HIGH)  # Set direction
-    total_steps = int(rotations) * steps_per_rotation
     for i in range(total_steps):
         GPIO.output(PUL, GPIO.HIGH)
         time.sleep(0.0001)
         GPIO.output(PUL, GPIO.LOW)
         time.sleep(0.0001)
     print(f"Motor run complete: {rotations} rotations")
+
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
