@@ -1,0 +1,27 @@
+name: CI Pipeline for Raspberry Pi
+
+on: [push, pull_request]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip
+        pip3 install paho-mqtt python-dotenv
+
+    - name: Set up environment variables
+      run: |
+        echo "MOTOR_CONTROLLER_IP=${{ secrets.MOTOR_CONTROLLER_IP }}" >> $GITHUB_ENV
+        echo "UI_CONTROLLER_IP=${{ secrets.UI_CONTROLLER_IP }}" >> $GITHUB_ENV
