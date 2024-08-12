@@ -1,15 +1,8 @@
 import tkinter as tk
 import paho.mqtt.client as mqtt
-import os
-from dotenv import load_dotenv
 
-# Load environment variables (for local testing with .env file)
-load_dotenv()
-
-# Get IP from environment variables
-mqtt_broker_ip = os.getenv('MOTOR_CONTROLLER_IP')
-
-# Setup MQTT client
+# MQTT setup
+mqtt_broker_ip = "192.168.10.9"  # Replace with your actual broker IP
 client = mqtt.Client()
 client.connect(mqtt_broker_ip, 1883, 60)
 
