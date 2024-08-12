@@ -16,22 +16,30 @@ GPIO.setup(ENABLE_PIN, GPIO.OUT)
 def move_motor(steps, direction, delay):
     # Enable the motor
     GPIO.output(ENABLE_PIN, GPIO.LOW)
-    
+    print(f"Motor enabled. Moving {'forward' if direction == GPIO.HIGH else 'backward'} for {steps} steps.")
+
     # Set the direction
     GPIO.output(DIR_PIN, direction)
     
     # Move the motor
-    for _ in range(steps):
+    for i in range(steps):
         GPIO.output(STEP_PIN, GPIO.HIGH)
         time.sleep(delay)
         GPIO.output(STEP_PIN, GPIO.LOW)
         time.sleep(delay)
+        
+        if i % 100 == 0:  # Print every 100 steps for more concise output
+            print(f"Step {i+1}/{steps}")
+
+    print("Movement completed.")
     
     # (Optional) Disable the motor after moving
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
+    print("Motor disabled.")
 
 try:
     # Move motor forward 1000 steps
+    print("Starting motor test...")
     move_motor(steps=1000, direction=GPIO.HIGH, delay=0.005)
     
     time.sleep(1)  # Wait for 1 second
@@ -44,3 +52,4 @@ except KeyboardInterrupt:
 
 finally:
     GPIO.cleanup()
+    print("GPIO cleanup done.")
