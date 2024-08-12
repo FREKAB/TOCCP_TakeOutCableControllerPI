@@ -1,7 +1,7 @@
 import time
 import RPi.GPIO as GPIO
 
-# GPIO pin setup for the first motor according to the HAT
+# GPIO pin setup for the first motor
 DIR_PIN = 13   # Direction pin
 STEP_PIN = 19  # Step pin
 ENABLE_PIN = 12  # Enable pin
@@ -27,17 +27,17 @@ def move_motor(steps, direction, delay):
         GPIO.output(STEP_PIN, GPIO.LOW)
         time.sleep(delay)
     
-    # Disable the motor
+    # (Optional) Disable the motor after moving
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
 
 try:
-
- for _ in range(5):  # Repeat the movement 5 times
-    move_motor(steps=10000, direction=GPIO.HIGH, delay=0.005)
-    time.sleep(1)
-    move_motor(steps=10000, direction=GPIO.LOW, delay=0.005)
-    time.sleep(1)
-
+    # Move motor forward 1000 steps
+    move_motor(steps=1000, direction=GPIO.HIGH, delay=0.005)
+    
+    time.sleep(1)  # Wait for 1 second
+    
+    # Move motor backward 1000 steps
+    move_motor(steps=1000, direction=GPIO.LOW, delay=0.005)
 
 except KeyboardInterrupt:
     print("Program interrupted!")
