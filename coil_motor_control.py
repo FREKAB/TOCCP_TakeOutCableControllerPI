@@ -31,13 +31,13 @@ def move_motor(steps, direction, delay):
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
 
 try:
-    # Move motor forward 200 steps
-    move_motor(steps=200, direction=GPIO.HIGH, delay=0.005)
-    
-    time.sleep(1)  # Wait for 1 second
-    
-    # Move motor backward 200 steps
-    move_motor(steps=200, direction=GPIO.LOW, delay=0.005)
+
+ for _ in range(5):  # Repeat the movement 5 times
+    move_motor(steps=1000, direction=GPIO.HIGH, delay=0.005)
+    time.sleep(1)
+    move_motor(steps=1000, direction=GPIO.LOW, delay=0.005)
+    time.sleep(1)
+
 
 except KeyboardInterrupt:
     print("Program interrupted!")
