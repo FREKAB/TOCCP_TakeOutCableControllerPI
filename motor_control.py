@@ -26,9 +26,9 @@ def on_message(client, userdata, msg):
 def run_motor():
     for i in range(steps):
         GPIO.output(PUL, GPIO.HIGH)
-        time.sleep(0.01)
+        time.sleep(0.0005)
         GPIO.output(PUL, GPIO.LOW)
-        time.sleep(0.01)
+        time.sleep(0.0005)
     print("Motor run complete")
     GPIO.cleanup()
 
