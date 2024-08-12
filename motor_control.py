@@ -39,6 +39,7 @@ def run_motor():
 
 # Get IP from environment variables
 mqtt_broker_ip = os.getenv('MOTOR_CONTROLLER_IP')
+print(f"Connecting to MQTT Broker at IP: {mqtt_broker_ip}")
 
 client = mqtt.Client()
 client.on_connect = on_connect
