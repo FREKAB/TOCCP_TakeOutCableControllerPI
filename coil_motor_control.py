@@ -34,9 +34,9 @@ try:
 
  for _ in range(5):  # Repeat the movement 5 times
     move_motor(steps=1000, direction=GPIO.HIGH, delay=0.005)
-    time.sleep(0.1)
+    time.sleep(1)
     move_motor(steps=1000, direction=GPIO.LOW, delay=0.005)
-    time.sleep(0.1)
+    time.sleep(1)
 
 
 except KeyboardInterrupt:
