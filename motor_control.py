@@ -1,6 +1,11 @@
 import RPi.GPIO as GPIO
 import time
 import paho.mqtt.client as mqtt
+import os
+from dotenv import load_dotenv
+
+# Load environment variables (for local testing with .env file)
+load_dotenv()
 
 # GPIO setup
 PUL = 17
@@ -12,7 +17,7 @@ GPIO.setup(PUL, GPIO.OUT)
 GPIO.setup(DIR, GPIO.OUT)
 GPIO.output(DIR, GPIO.HIGH)
 
-# Define MQTT events
+# MQTT setup
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
@@ -32,11 +37,13 @@ def run_motor():
     print("Motor run complete")
     GPIO.cleanup()
 
-# Setup MQTT client
+# Get IP from environment variables
+mqtt_broker_ip = os.getenv('MOTOR_CONTROLLER_IP')
+
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-client.connect("broker_ip_address", 1883, 60)  # Replace with broker IP
+client.connect(mqtt_broker_ip, 1883, 60)
 
 client.loop_forever()
