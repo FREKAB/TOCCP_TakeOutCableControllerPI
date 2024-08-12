@@ -13,14 +13,20 @@ GPIO.setup(PUL, GPIO.OUT)
 GPIO.setup(DIR, GPIO.OUT)
 
 def run_motor(rotations):
-    total_steps = int(float(rotations) * steps_per_rotation)  # Convert rotations to float first
-    GPIO.output(DIR, GPIO.HIGH)  # Set direction
-    for i in range(total_steps):
-        GPIO.output(PUL, GPIO.HIGH)
-        time.sleep(0.0001)
-        GPIO.output(PUL, GPIO.LOW)
-        time.sleep(0.0001)
-    print(f"Motor run complete: {rotations} rotations")
+    try:
+        # Sanitize input by stripping any extra spaces and ensuring it's a float
+        rotations = float(rotations.strip())
+        total_steps = int(rotations * steps_per_rotation)  # Convert rotations to steps
+        GPIO.output(DIR, GPIO.HIGH)  # Set direction
+        for i in range(total_steps):
+            GPIO.output(PUL, GPIO.HIGH)
+            time.sleep(0.001)
+            GPIO.output(PUL, GPIO.LOW)
+            time.sleep(0.001)
+        print(f"Motor run complete: {rotations} rotations")
+    except ValueError as e:
+        print(f"Error: {e}. Received invalid rotations value: {rotations}")
+
 
 
 def on_connect(client, userdata, flags, rc):
