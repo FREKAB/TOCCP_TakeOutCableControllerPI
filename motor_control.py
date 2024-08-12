@@ -6,21 +6,21 @@ import threading
 # GPIO setup
 PUL = 17
 DIR = 27
-steps = 1600
+steps_per_rotation = 1600  # Adjust based on your motor and stepper driver
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PUL, GPIO.OUT)
 GPIO.setup(DIR, GPIO.OUT)
 
-def run_motor():
+def run_motor(rotations):
     GPIO.output(DIR, GPIO.HIGH)  # Set direction
-    for i in range(steps):
+    total_steps = int(rotations) * steps_per_rotation
+    for i in range(total_steps):
         GPIO.output(PUL, GPIO.HIGH)
-        time.sleep(0.0001)
+        time.sleep(0.01)
         GPIO.output(PUL, GPIO.LOW)
-        time.sleep(0.0001)
-    print("Motor run complete")
-    # Don't call GPIO.cleanup() here if you want to be able to run the motor again
+        time.sleep(0.01)
+    print(f"Motor run complete: {rotations} rotations")
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
@@ -28,11 +28,10 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     if msg.topic == "motor/control":
-        command = msg.payload.decode()
-        if command == "RUN":
-            print("RUN command received")
-            # Run the motor in a separate thread to avoid blocking
-            threading.Thread(target=run_motor).start()
+        rotations = msg.payload.decode()
+        print(f"RUN command received for {rotations} rotations")
+        # Run the motor in a separate thread to avoid blocking
+        threading.Thread(target=run_motor, args=(rotations,)).start()
 
 # MQTT setup
 mqtt_broker_ip = "192.168.10.9"  # Replace with your broker IP
@@ -42,4 +41,3 @@ client.on_message = on_message
 
 client.connect(mqtt_broker_ip, 1883, 60)
 client.loop_forever()  # Keep listening for incoming messages
-
