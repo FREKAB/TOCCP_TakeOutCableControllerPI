@@ -20,9 +20,9 @@ def run_motor(rotations):
         GPIO.output(DIR, GPIO.HIGH)  # Set direction
         for i in range(total_steps):
             GPIO.output(PUL, GPIO.HIGH)
-            time.sleep(0.001)
+            time.sleep(0.0001)
             GPIO.output(PUL, GPIO.LOW)
-            time.sleep(0.001)
+            time.sleep(0.0001)
         print(f"Motor run complete: {rotations} rotations")
     except ValueError as e:
         print(f"Error: {e}. Received invalid rotations value: {rotations}")
