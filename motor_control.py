@@ -17,9 +17,9 @@ def run_motor(rotations):
     total_steps = int(rotations) * steps_per_rotation
     for i in range(total_steps):
         GPIO.output(PUL, GPIO.HIGH)
-        time.sleep(0.01)
+        time.sleep(0.0001)
         GPIO.output(PUL, GPIO.LOW)
-        time.sleep(0.01)
+        time.sleep(0.0001)
     print(f"Motor run complete: {rotations} rotations")
 
 def on_connect(client, userdata, flags, rc):
