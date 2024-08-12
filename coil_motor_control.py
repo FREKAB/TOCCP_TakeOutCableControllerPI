@@ -15,7 +15,7 @@ GPIO.setup(ENABLE_PIN, GPIO.OUT)
 # Function to move the motor
 def move_motor(steps, direction, delay):
     # Enable the motor
-    GPIO.output(ENABLE_PIN, GPIO.LOW)
+    GPIO.output(ENABLE_PIN, GPIO.HIGH)
     print(f"Motor enabled. Moving {'forward' if direction == GPIO.HIGH else 'backward'} for {steps} steps.")
 
     # Set the direction
@@ -34,7 +34,7 @@ def move_motor(steps, direction, delay):
     print("Movement completed.")
     
     # (Optional) Disable the motor after moving
-    GPIO.output(ENABLE_PIN, GPIO.HIGH)
+    GPIO.output(ENABLE_PIN, GPIO.LOW)
     print("Motor disabled.")
 
 try:
