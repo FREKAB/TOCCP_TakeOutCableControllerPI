@@ -15,15 +15,38 @@ try:
 
     def run_motor(rotations):
         try:
-            # Sanitize input by stripping any extra spaces and ensuring it's a float
             rotations = float(rotations.strip())
-            total_steps = int(rotations * steps_per_rotation)  # Convert rotations to steps
+            total_steps = int(rotations * steps_per_rotation)
             GPIO.output(DIR, GPIO.HIGH)  # Set direction
-            for i in range(total_steps):
+
+            # Acceleration and deceleration parameters
+            accel_steps = min(400, total_steps // 4)  # Accelerate for 400 steps or 1/4 of total, whichever is smaller
+            decel_steps = accel_steps
+            const_speed_steps = total_steps - accel_steps - decel_steps
+
+            # Acceleration
+            for i in range(accel_steps):
+                delay = 0.001 - (0.0009 * i / accel_steps)  # Start slow, gradually speed up
+                GPIO.output(PUL, GPIO.HIGH)
+                time.sleep(delay)
+                GPIO.output(PUL, GPIO.LOW)
+                time.sleep(delay)
+
+            # Constant speed
+            for i in range(const_speed_steps):
                 GPIO.output(PUL, GPIO.HIGH)
                 time.sleep(0.0001)
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(0.0001)
+
+            # Deceleration
+            for i in range(decel_steps):
+                delay = 0.0001 + (0.0009 * i / decel_steps)  # Start fast, gradually slow down
+                GPIO.output(PUL, GPIO.HIGH)
+                time.sleep(delay)
+                GPIO.output(PUL, GPIO.LOW)
+                time.sleep(delay)
+
             print(f"Motor run complete: {rotations} rotations")
         except ValueError as e:
             print(f"Error: {e}. Received invalid rotations value: {rotations}")
