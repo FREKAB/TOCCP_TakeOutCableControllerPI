@@ -108,15 +108,18 @@ def setup_gpio():
     GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def setup_event_detection():
-    try:
-        GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
-        GPIO.add_event_detect(BWD_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
-        GPIO.add_event_detect(STOP_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
-        GPIO.add_event_detect(EMERGENCY_STOP, GPIO.FALLING, callback=button_callback, bouncetime=300)
-    except RuntimeError as e:
-        print(f"Error setting up event detection: {e}")
-        print("This might be due to GPIO pins already being in use.")
-        return False
+    buttons = [
+        ("FWD_BUTTON", FWD_BUTTON),
+        ("BWD_BUTTON", BWD_BUTTON),
+        ("STOP_BUTTON", STOP_BUTTON),
+        ("EMERGENCY_STOP", EMERGENCY_STOP)
+    ]
+    for name, pin in buttons:
+        try:
+            GPIO.add_event_detect(pin, GPIO.FALLING, callback=button_callback, bouncetime=300)
+        except RuntimeError as e:
+            print(f"Error setting up event detection for {name} (GPIO {pin}): {e}")
+            return False
     return True
 
 try:
