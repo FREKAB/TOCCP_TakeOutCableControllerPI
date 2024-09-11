@@ -49,8 +49,10 @@ def run_motor(direction, speed=0.0001):
         GPIO.output(PUL, GPIO.LOW)
         time.sleep(speed)
     
-    GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor
+    if emergency_stop:
+        GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor only if emergency stop
     running = False
+
 
 def run_motor_forward():
     print("Running motor forward")
@@ -64,11 +66,13 @@ def stop_motor():
     global running
     running = False
     print("Stopping motor")
+    # Motor remains enabled when stopped
 
 def emergency_brake():
-    global emergency_stop
+    global emergency_stop, running
     emergency_stop = True
-    GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Immediately disable the motor
+    running = False
+    GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor
     print("Emergency brake activated!")
 
 def button_callback(channel):
@@ -138,6 +142,9 @@ def check_buttons():
 try:
     setup_gpio()
     
+    # Enable the motor at startup
+    GPIO.output(ENABLE_PIN, GPIO.LOW)
+    
     # Start button checking in a separate thread
     button_thread = threading.Thread(target=check_buttons)
     button_thread.daemon = True
@@ -159,6 +166,6 @@ except KeyboardInterrupt:
 except Exception as e:
     print(f"An error occurred: {e}")
 finally:
-    GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Ensure motor is disabled
+    GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Ensure motor is disabled on program exit
     GPIO.cleanup()
     print("GPIO cleanup done.")
