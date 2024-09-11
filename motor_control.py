@@ -122,10 +122,26 @@ def setup_event_detection():
             return False
     return True
 
+def check_buttons():
+    global running, emergency_stop
+    while True:
+        if GPIO.input(FWD_BUTTON) == GPIO.LOW and not running:
+            threading.Thread(target=run_motor_forward).start()
+        elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not running:
+            threading.Thread(target=run_motor_backward).start()
+        elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
+            stop_motor()
+        elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+            emergency_brake()
+        time.sleep(0.1)  # Small delay to prevent excessive CPU usage
+
 try:
     setup_gpio()
-    if not setup_event_detection():
-        raise Exception("Failed to set up GPIO event detection")
+    
+    # Start button checking in a separate thread
+    button_thread = threading.Thread(target=check_buttons)
+    button_thread.daemon = True
+    button_thread.start()
 
     reset_motor_driver()  # Reset the motor driver at the start
 
