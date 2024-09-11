@@ -97,12 +97,32 @@ def on_message(client, userdata, msg):
         else:
             print(f"Unknown command: {command}")
 
+def setup_gpio():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(PUL, GPIO.OUT)
+    GPIO.setup(DIR, GPIO.OUT)
+    GPIO.setup(ENABLE_PIN, GPIO.OUT)
+    GPIO.setup(FWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(BWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(STOP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+def setup_event_detection():
+    try:
+        GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
+        GPIO.add_event_detect(BWD_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
+        GPIO.add_event_detect(STOP_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
+        GPIO.add_event_detect(EMERGENCY_STOP, GPIO.FALLING, callback=button_callback, bouncetime=300)
+    except RuntimeError as e:
+        print(f"Error setting up event detection: {e}")
+        print("This might be due to GPIO pins already being in use.")
+        return False
+    return True
+
 try:
-    # Set up button event detection
-    GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
-    GPIO.add_event_detect(BWD_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
-    GPIO.add_event_detect(STOP_BUTTON, GPIO.FALLING, callback=button_callback, bouncetime=300)
-    GPIO.add_event_detect(EMERGENCY_STOP, GPIO.FALLING, callback=button_callback, bouncetime=300)
+    setup_gpio()
+    if not setup_event_detection():
+        raise Exception("Failed to set up GPIO event detection")
 
     reset_motor_driver()  # Reset the motor driver at the start
 
