@@ -6,16 +6,14 @@ PIN_TO_TEST = 22
 
 GPIO.setup(PIN_TO_TEST, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-def callback(channel):
-    print(f"Event detected on channel {channel}")
-
 try:
-    GPIO.add_event_detect(PIN_TO_TEST, GPIO.FALLING, callback=callback, bouncetime=300)
-    print(f"Event detection set up for GPIO {PIN_TO_TEST}")
+    print(f"Reading GPIO {PIN_TO_TEST}. Press Ctrl+C to exit.")
     while True:
-        time.sleep(1)
-except Exception as e:
-    print(f"Error: {e}")
+        state = GPIO.input(PIN_TO_TEST)
+        print(f"GPIO {PIN_TO_TEST} state: {state}")
+        time.sleep(0.5)
+except KeyboardInterrupt:
+    print("Script terminated by user")
 finally:
     GPIO.cleanup()
     print("GPIO cleanup done")
