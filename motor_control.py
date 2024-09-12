@@ -69,7 +69,7 @@ def check_buttons():
                 time.sleep(0.0001)
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(0.0001)
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor when button is released
             print("Forward button released")
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor backward")
@@ -80,7 +80,7 @@ def check_buttons():
                 time.sleep(0.0001)
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(0.0001)
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor when button is released
             print("Backward button released")
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
