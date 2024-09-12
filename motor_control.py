@@ -9,8 +9,8 @@ DIR = 27
 ENABLE_PIN = 12  # Enable pin for the motor driver
 FWD_BUTTON = 22  # Forward button
 BWD_BUTTON = 23  # Backward button
-STOP_BUTTON = 24  # Stop button
-EMERGENCY_STOP = 25  # Emergency stop button
+STOP_BUTTON = 25  # Stop button
+EMERGENCY_STOP = 24  # Emergency stop button
 
 steps_per_rotation = 1600  # Adjust based on your motor and stepper driver
 
