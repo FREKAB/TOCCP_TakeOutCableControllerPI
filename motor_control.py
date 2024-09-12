@@ -39,15 +39,15 @@ def reset_motor_driver():
 
 def run_motor(direction, speed=0.0001):
     GPIO.output(DIR, direction)
-    GPIO.output(PUL, GPIO.HIGH)
-    time.sleep(speed)
     GPIO.output(PUL, GPIO.LOW)
+    time.sleep(speed)
+    GPIO.output(PUL, GPIO.HIGH)
     time.sleep(speed)
 
 def stop_motor():
     global motor_running
     motor_running = False
-    GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor
+    GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor
     print("Motor stopped")
 
 def emergency_brake():
