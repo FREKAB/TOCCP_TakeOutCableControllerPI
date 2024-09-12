@@ -80,21 +80,29 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     if msg.topic == "motor/control":
-        command = msg.payload.decode().strip().lower()
-        if command == "forward":
-            print("MQTT command: forward")
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            run_motor(GPIO.HIGH)
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after one step
-        elif command == "backward":
-            print("MQTT command: backward")
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            run_motor(GPIO.LOW)
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after one step
-        elif command == "stop":
-            stop_motor()
-        else:
-            print(f"Unknown command: {command}")
+        try:
+            command = float(msg.payload.decode().strip())
+            steps = int(abs(command) * steps_per_rotation)  # Convert to steps
+            if steps > 0:
+                direction = GPIO.HIGH if command > 0 else GPIO.LOW
+                print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
+                GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+                GPIO.output(DIR, direction)
+                for _ in range(steps):
+                    run_motor(direction)
+                    if emergency_stop:
+                        break
+                GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
+            else:
+                print("MQTT command: stop")
+                stop_motor()
+        except ValueError:
+            command = msg.payload.decode().strip().lower()
+            if command == "stop":
+                print("MQTT command: stop")
+                stop_motor()
+            else:
+                print(f"Unknown command: {command}")
 
 try:
     reset_motor_driver()  # Reset the motor driver at the start
