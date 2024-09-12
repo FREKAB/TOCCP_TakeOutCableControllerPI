@@ -50,47 +50,63 @@ def stop_motor():
     GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor
     print("Motor stopped")
 
+
 def emergency_brake():
-    global emergency_stop, motor_running
-    emergency_stop = True
-    motor_running = False
     GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor
     print("Emergency brake activated!")
 
+def release_emergency_brake():
+    GPIO.output(ENABLE_PIN, GPIO.LOW)  # Re-enable the motor
+    print("Emergency brake released")
+
 def check_buttons():
-    global emergency_stop, motor_running
-    while not emergency_stop:
+    global motor_running
+    while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor forward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward
-            while GPIO.input(FWD_BUTTON) == GPIO.LOW and not emergency_stop:
+            while GPIO.input(FWD_BUTTON) == GPIO.LOW:
+                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    emergency_brake()
+                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                        time.sleep(0.01)
+                    release_emergency_brake()
                 GPIO.output(PUL, GPIO.HIGH)
                 time.sleep(0.0001)
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(0.0001)
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor when button is released
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
             print("Forward button released")
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor backward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to backward
-            while GPIO.input(BWD_BUTTON) == GPIO.LOW and not emergency_stop:
+            while GPIO.input(BWD_BUTTON) == GPIO.LOW:
+                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    emergency_brake()
+                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                        time.sleep(0.01)
+                    release_emergency_brake()
                 GPIO.output(PUL, GPIO.HIGH)
                 time.sleep(0.0001)
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(0.0001)
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor when button is released
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
             print("Backward button released")
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
         elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
             emergency_brake()
+            while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                time.sleep(0.01)
+            release_emergency_brake()
         time.sleep(0.01)  # Small delay to prevent excessive CPU usage
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
+
 
 def on_message(client, userdata, msg):
     global motor_running
@@ -105,7 +121,13 @@ def on_message(client, userdata, msg):
                 GPIO.output(DIR, direction)
                 motor_running = True
                 for _ in range(steps):
-                    if not motor_running or emergency_stop:
+                    if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                        emergency_brake()
+                        while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                            time.sleep(0.01)
+                        release_emergency_brake()
+                        break
+                    if not motor_running:
                         break
                     run_motor(direction)
                 motor_running = False
@@ -120,6 +142,7 @@ def on_message(client, userdata, msg):
                 stop_motor()
             else:
                 print(f"Unknown command: {command}")
+
 
 try:
     reset_motor_driver()  # Reset the motor driver at the start
