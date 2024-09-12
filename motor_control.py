@@ -62,25 +62,25 @@ def check_buttons():
     while not emergency_stop:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor forward")
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Enable the motor
             GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward
             while GPIO.input(FWD_BUTTON) == GPIO.LOW and not emergency_stop:
                 GPIO.output(PUL, GPIO.HIGH)
                 time.sleep(0.0001)
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(0.0001)
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor when button is released
             print("Forward button released")
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor backward")
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to backward
             while GPIO.input(BWD_BUTTON) == GPIO.LOW and not emergency_stop:
                 GPIO.output(PUL, GPIO.HIGH)
                 time.sleep(0.0001)
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(0.0001)
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor when button is released
             print("Backward button released")
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
