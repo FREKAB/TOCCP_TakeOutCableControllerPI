@@ -37,12 +37,40 @@ def reset_motor_driver():
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
     print("Motor driver reset complete.")
 
-def run_motor(direction, speed=0.0001):
+def run_motor(direction, steps, max_speed=0.0001, accel_steps=200):
     GPIO.output(DIR, direction)
-    GPIO.output(PUL, GPIO.LOW)
-    time.sleep(speed)
-    GPIO.output(PUL, GPIO.HIGH)
-    time.sleep(speed)
+    
+    # Acceleration phase
+    for i in range(accel_steps):
+        speed = max_speed + (max_speed * 9 * (accel_steps - i) / accel_steps)
+        GPIO.output(PUL, GPIO.HIGH)
+        time.sleep(speed)
+        GPIO.output(PUL, GPIO.LOW)
+        time.sleep(speed)
+        steps -= 1
+        if steps <= 0:
+            return
+
+    # Constant speed phase
+    for _ in range(steps - accel_steps):
+        GPIO.output(PUL, GPIO.HIGH)
+        time.sleep(max_speed)
+        GPIO.output(PUL, GPIO.LOW)
+        time.sleep(max_speed)
+        steps -= 1
+        if steps <= 0:
+            return
+
+    # Deceleration phase
+    for i in range(accel_steps):
+        speed = max_speed + (max_speed * 9 * i / accel_steps)
+        GPIO.output(PUL, GPIO.HIGH)
+        time.sleep(speed)
+        GPIO.output(PUL, GPIO.LOW)
+        time.sleep(speed)
+        steps -= 1
+        if steps <= 0:
+            return
 
 def stop_motor():
     global motor_running
@@ -129,7 +157,7 @@ def on_message(client, userdata, msg):
                         break
                     if not motor_running:
                         break
-                    run_motor(direction)
+                    run_motor(direction, steps)
                 motor_running = False
                 GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
             else:
