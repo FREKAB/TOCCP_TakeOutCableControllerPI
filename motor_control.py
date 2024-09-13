@@ -37,21 +37,11 @@ def reset_motor_driver():
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
     print("Motor driver reset complete.")
 
-def run_motor(direction, speed=0.0001, accel_steps=200):
+def run_motor(direction, speed=0.0001):
     GPIO.output(DIR, direction)
-    
-    # Acceleration phase
-    for i in range(accel_steps):
-        current_speed = speed + (speed * 9 * (accel_steps - i) / accel_steps)
-        GPIO.output(PUL, GPIO.HIGH)
-        time.sleep(current_speed)
-        GPIO.output(PUL, GPIO.LOW)
-        time.sleep(current_speed)
-
-    # Run at constant speed
-    GPIO.output(PUL, GPIO.HIGH)
-    time.sleep(speed)
     GPIO.output(PUL, GPIO.LOW)
+    time.sleep(speed)
+    GPIO.output(PUL, GPIO.HIGH)
     time.sleep(speed)
 
 def stop_motor():
@@ -75,37 +65,33 @@ def check_buttons():
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor forward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward
-            run_motor(GPIO.HIGH)  # Run with acceleration
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
             while GPIO.input(FWD_BUTTON) == GPIO.LOW:
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                         time.sleep(0.01)
                     release_emergency_brake()
-                else:
-                    GPIO.output(PUL, GPIO.HIGH)
-                    time.sleep(0.0001)
-                    GPIO.output(PUL, GPIO.LOW)
-                    time.sleep(0.0001)
+                GPIO.output(PUL, GPIO.HIGH)
+                time.sleep(0.0005)
+                GPIO.output(PUL, GPIO.LOW)
+                time.sleep(0.0005)
             GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
             print("Forward button released")
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor backward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.LOW)  # Set direction to backward
-            run_motor(GPIO.LOW)  # Run with acceleration
+            GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
             while GPIO.input(BWD_BUTTON) == GPIO.LOW:
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                         time.sleep(0.01)
                     release_emergency_brake()
-                else:
-                    GPIO.output(PUL, GPIO.HIGH)
-                    time.sleep(0.0001)
-                    GPIO.output(PUL, GPIO.LOW)
-                    time.sleep(0.0001)
+                GPIO.output(PUL, GPIO.HIGH)
+                time.sleep(0.0005)
+                GPIO.output(PUL, GPIO.LOW)
+                time.sleep(0.0005)
             GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
             print("Backward button released")
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
@@ -143,7 +129,7 @@ def on_message(client, userdata, msg):
                         break
                     if not motor_running:
                         break
-                    run_motor(direction, speed=0.0001, accel_steps=200)
+                    run_motor(direction)
                 motor_running = False
                 GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
             else:
