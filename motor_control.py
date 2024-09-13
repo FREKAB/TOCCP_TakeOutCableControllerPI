@@ -73,9 +73,9 @@ def check_buttons():
                         time.sleep(0.01)
                     release_emergency_brake()
                 GPIO.output(PUL, GPIO.HIGH)
-                time.sleep(0.0005)
+                time.sleep(0.001)
                 GPIO.output(PUL, GPIO.LOW)
-                time.sleep(0.0005)
+                time.sleep(0.001)
             GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
             print("Forward button released")
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
