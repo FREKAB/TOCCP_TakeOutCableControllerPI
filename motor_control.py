@@ -62,19 +62,16 @@ def release_emergency_brake():
     print("Emergency brake released")
 
 def check_buttons():
-    global motor_running, last_button_press
+    global motor_running
     max_speed = 0.0001  # Minimum delay between pulses (maximum speed)
-    start_speed = 0.001  # Keep your current start_speed
-    accel_steps = 3000   # Keep your current accel_steps
+    start_speed = 0.001  # Starting speed (larger delay)
+    accel_steps = 3000   # Number of steps for acceleration
 
     while True:
-        current_time = int(time.time() * 1000)  # Current time in milliseconds
-        
-        if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running and (current_time - last_button_press) > debounce_time:
-            last_button_press = current_time
-            motor_running = True
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor immediately
-            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward immediately
+        if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
+            print("Running motor forward")
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
             
             # Acceleration phase
             for i in range(accel_steps):
@@ -89,25 +86,30 @@ def check_buttons():
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        time.sleep(0.001)
+                        time.sleep(0.01)
                     release_emergency_brake()
                     break
 
             # Constant speed phase
-            while GPIO.input(FWD_BUTTON) == GPIO.LOW and not GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                GPIO.output(PUL, GPIO.HIGH)
-                time.sleep(max_speed)
-                GPIO.output(PUL, GPIO.LOW)
-                time.sleep(max_speed)
+            while GPIO.input(FWD_BUTTON) == GPIO.LOW:
+                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    emergency_brake()
+                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                        time.sleep(0.01)
+                    release_emergency_brake()
+                else:
+                    GPIO.output(PUL, GPIO.HIGH)
+                    time.sleep(max_speed)
+                    GPIO.output(PUL, GPIO.LOW)
+                    time.sleep(max_speed)
 
             GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
-            motor_running = False
+            print("Forward button released")
 
-        elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running and (current_time - last_button_press) > debounce_time:
-            last_button_press = current_time
-            motor_running = True
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor immediately
-            GPIO.output(DIR, GPIO.LOW)  # Set direction to backward immediately
+        elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
+            print("Running motor backward")
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
             
             # Acceleration phase
             for i in range(accel_steps):
@@ -122,30 +124,34 @@ def check_buttons():
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        time.sleep(0.001)
+                        time.sleep(0.01)
                     release_emergency_brake()
                     break
 
             # Constant speed phase
-            while GPIO.input(BWD_BUTTON) == GPIO.LOW and not GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                GPIO.output(PUL, GPIO.HIGH)
-                time.sleep(max_speed)
-                GPIO.output(PUL, GPIO.LOW)
-                time.sleep(max_speed)
+            while GPIO.input(BWD_BUTTON) == GPIO.LOW:
+                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    emergency_brake()
+                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                        time.sleep(0.01)
+                    release_emergency_brake()
+                else:
+                    GPIO.output(PUL, GPIO.HIGH)
+                    time.sleep(max_speed)
+                    GPIO.output(PUL, GPIO.LOW)
+                    time.sleep(max_speed)
 
             GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
-            motor_running = False
+            print("Backward button released")
 
-        elif GPIO.input(STOP_BUTTON) == GPIO.LOW and (current_time - last_button_press) > debounce_time:
-            last_button_press = current_time
+        elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
         elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
             emergency_brake()
             while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                time.sleep(0.001)
+                time.sleep(0.01)
             release_emergency_brake()
-        
-        time.sleep(0.001)  # Reduced delay to increase responsiveness
+        time.sleep(0.01)  # Small delay to prevent excessive CPU usage
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
