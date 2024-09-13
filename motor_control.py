@@ -63,7 +63,7 @@ def check_buttons():
     global motor_running
     max_speed = 0.0001  # Minimum delay between pulses (maximum speed)
     start_speed = 0.001  # Starting speed (larger delay)
-    accel_steps = 200   # Number of steps for acceleration
+    accel_steps = 1000   # Number of steps for acceleration
 
     while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
