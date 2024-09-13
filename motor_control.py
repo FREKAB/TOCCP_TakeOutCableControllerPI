@@ -63,13 +63,13 @@ def check_buttons():
     global motor_running
     max_speed = 0.0001  # Minimum delay between pulses (maximum speed)
     start_speed = 0.001  # Starting speed (larger delay)
-    accel_steps = 5000   # Number of steps for acceleration
+    accel_steps = 3000   # Number of steps for acceleration
 
     while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor forward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
             
             # Acceleration phase
             for i in range(accel_steps):
@@ -107,7 +107,7 @@ def check_buttons():
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Running motor backward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.LOW)  # Set direction to backward
+            GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
             
             # Acceleration phase
             for i in range(accel_steps):
