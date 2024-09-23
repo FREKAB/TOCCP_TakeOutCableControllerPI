@@ -41,7 +41,6 @@ def reset_motor_driver():
 
 def run_motor(direction, start_speed=0.001, max_speed=0.0001, accel_steps=1600):
     GPIO.output(DIR, direction)
-    GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Enable the motor
     
     # Acceleration phase
     for i in range(accel_steps):
