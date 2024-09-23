@@ -57,6 +57,7 @@ def run_motor(direction, start_speed=0.001, max_speed=0.0001, accel_steps=1600):
         GPIO.output(PUL, GPIO.HIGH)
         time.sleep(max_speed)
     
+    GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor when stopping
     
 def stop_motor():
     global motor_running
