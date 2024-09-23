@@ -63,7 +63,7 @@ def release_emergency_brake():
 
 def check_buttons():
     global motor_running
-    max_speed = 0.0001  # Minimum delay between pulses (maximum speed)
+    max_speed = 0.005  # Minimum delay between pulses (maximum speed)
     start_speed = 0.001  # Starting speed (larger delay)
     accel_steps = 1600   # Number of steps for acceleration
 
