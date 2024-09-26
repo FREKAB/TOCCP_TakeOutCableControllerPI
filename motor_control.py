@@ -69,7 +69,6 @@ def check_buttons():
 
     while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
-            print("Running motor forward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
             
@@ -107,7 +106,6 @@ def check_buttons():
             print("Forward button released")
 
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
-            print("Running motor backward")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
             
