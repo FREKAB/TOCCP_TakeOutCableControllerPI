@@ -156,51 +156,65 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("motor/control")
 
 
+def run_motor_for_time(direction, duration, speed=0.001):
+    """
+    Run the motor for a given duration in seconds.
+    This allows us to check for MQTT messages or other interrupts during the motor's operation.
+    """
+    global motor_running
+    motor_running = True
+    GPIO.output(DIR, direction)  # Set motor direction
+
+    start_time = time.time()
+    while motor_running and (time.time() - start_time) < duration:
+        GPIO.output(PUL, GPIO.LOW)  # Pulse LOW
+        time.sleep(speed)  # Control speed
+        GPIO.output(PUL, GPIO.HIGH)  # Pulse HIGH
+        time.sleep(speed)
+
+        # Allow MQTT message processing
+        client.loop(0.01)  # Check MQTT messages for 10ms
+
+        # Check for emergency stop
+        if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+            emergency_brake()
+            while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                time.sleep(0.01)  # Wait for emergency stop to be released
+            release_emergency_brake()
+            break
+
+    stop_motor()  # Stop motor after the time is reached or interrupted
+    print("Motor stopped after running for", duration, "seconds")
+
+
 def on_message(client, userdata, msg):
+    """
+    Handle incoming MQTT messages and control the motor based on the message content.
+    """
     global motor_running
     if msg.topic == "motor/control":
         try:
-            command = float(msg.payload.decode().strip())
-            steps = int(abs(command) * steps_per_rotation)  # Convert rotations to steps
-            if steps > 0:
-                direction = GPIO.HIGH if command > 0 else GPIO.LOW
-                print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
+            command = msg.payload.decode().strip()
+            if command.startswith("run"):
+                # Parse the duration from the command, e.g., "run 5" means run for 5 seconds
+                _, duration = command.split()
+                duration = float(duration)  # Convert to float for seconds
+                direction = GPIO.HIGH if float(duration) > 0 else GPIO.LOW  # Adjust direction
+
+                print(f"MQTT command: run motor for {duration} seconds")
                 GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-                GPIO.output(DIR, direction)
-                motor_running = True
+                run_motor_for_time(direction, abs(duration))  # Run motor for the specified time
 
-                # Run motor in small steps, frequently checking for stop commands
-                for step in range(steps):
-                    # Check for emergency stop
-                    if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        emergency_brake()
-                        while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                            time.sleep(0.01)
-                        release_emergency_brake()
-                        break
+            elif command == "stop":
+                print("MQTT command: stop motor")
+                stop_motor()  # Stop the motor immediately
 
-                    # Check if motor has been stopped via MQTT
-                    if not motor_running:
-                        break  # Stop the motor if a stop command has been received
-
-                    # Run one step of the motor
-                    run_motor(direction)
-
-                    # Allow frequent processing of MQTT messages
-                    client.loop(0.01)  # Process MQTT messages for 10ms at every step
-
-                motor_running = False
-                GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
             else:
-                print("MQTT command: stop")
-                stop_motor()
-        except ValueError:
-            command = msg.payload.decode().strip().lower()
-            if command == "stop":
-                print("MQTT command: stop")
-                stop_motor()
-            else:
-                print(f"Unknown command: {command}")
+                print(f"Unknown command received: {command}")
+
+        except ValueError as e:
+            print(f"Error parsing MQTT command: {e}")
+
 
 
 
