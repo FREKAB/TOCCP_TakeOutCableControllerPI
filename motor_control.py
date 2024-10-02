@@ -36,9 +36,9 @@ timeout_threshold = 1  # Timeout threshold for manual run in seconds
 # Motor control functions
 def run_motor(direction, speed=0.001):
     GPIO.output(DIR, direction)
-    GPIO.output(PUL, GPIO.LOW)
-    time.sleep(speed)
     GPIO.output(PUL, GPIO.HIGH)
+    time.sleep(speed)
+    GPIO.output(PUL, GPIO.LOW)
     time.sleep(speed)
 
 def stop_motor():
