@@ -75,35 +75,56 @@ def check_buttons():
 
     while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)
-            GPIO.output(DIR, GPIO.LOW)
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
+            motor_running = True
+            current_speed = start_speed
+
+            # Acceleration phase
             for i in range(accel_steps):
                 if GPIO.input(FWD_BUTTON) == GPIO.HIGH:
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
                 run_motor(GPIO.LOW, current_speed)
-            motor_running = True
+
+            # Constant speed phase while the button is pressed
+            while GPIO.input(FWD_BUTTON) == GPIO.LOW:
+                run_motor(GPIO.LOW, max_speed)
+            
+            # Stop the motor when the button is released
+            stop_motor()
+            print("Forward button released")
 
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)
-            GPIO.output(DIR, GPIO.HIGH)
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
+            motor_running = True
+            current_speed = start_speed
+
+            # Acceleration phase
             for i in range(accel_steps):
                 if GPIO.input(BWD_BUTTON) == GPIO.HIGH:
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
                 run_motor(GPIO.HIGH, current_speed)
-            motor_running = True
+
+            # Constant speed phase while the button is pressed
+            while GPIO.input(BWD_BUTTON) == GPIO.LOW:
+                run_motor(GPIO.HIGH, max_speed)
+
+            # Stop the motor when the button is released
+            stop_motor()
+            print("Backward button released")
 
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
-
         elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
             emergency_brake()
             while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                 time.sleep(0.01)
             release_emergency_brake()
 
-        time.sleep(0.01)
+        time.sleep(0.01)  # Small delay to prevent excessive CPU usage
 
 # MQTT callback functions
 def on_connect(client, userdata, flags, rc):
