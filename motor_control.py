@@ -181,7 +181,7 @@ def on_message(client, userdata, msg):
                     # Continuously run the motor while in "manual run" mode
                     while motor_running:
                         run_motor(GPIO.LOW)  # Run motor in forward direction (can be adjusted as needed)
-                        time.sleep(0.01)  # Small delay to allow for MQTT message processing
+                        time.sleep(0.001)  # Small delay to allow for MQTT message processing
                         # Check if "run manual" message continues to be received
                         if time.time() - last_manual_run_time > 1:  # Timeout if no "run manual" received within 1 second
                             stop_motor()
