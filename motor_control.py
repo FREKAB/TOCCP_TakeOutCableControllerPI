@@ -188,10 +188,30 @@ def on_message(client, userdata, msg):
                 stop_motor()
 
             else:
-                print(f"Unknown command: {command}")
+                # Assuming this is the old-style command with rotations
+                try:
+                    rotations = float(command)
+                    steps = int(abs(rotations) * steps_per_rotation)  # Convert rotations to steps
+                    if steps > 0:
+                        direction = GPIO.HIGH if rotations > 0 else GPIO.LOW
+                        print(f"MQTT command: {'forward' if rotations > 0 else 'backward'} for {steps} steps")
+                        GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+                        motor_speed = 0.001  # Normal speed for old command
+                        motor_running = True
+
+                        for step in range(steps):
+                            if not motor_running:
+                                break  # Stop the motor if a stop command has been received
+                            run_motor(direction)
+
+                        motor_running = False
+                        GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
+                except ValueError:
+                    print(f"Unknown command: {command}")
 
         except Exception as e:
             print(f"Error processing MQTT message: {e}")
+
 
 
 # Motor control loop to check for "run manual" heartbeat
