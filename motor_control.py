@@ -178,10 +178,23 @@ def on_message(client, userdata, msg):
                     motor_speed = 0.001  # Default speed for manual run
                     print("Motor started manually")
 
+                    # Continuously run the motor while in "manual run" mode
+                    while motor_running:
+                        run_motor(GPIO.LOW)  # Run motor in forward direction (can be adjusted as needed)
+                        time.sleep(0.01)  # Small delay to allow for MQTT message processing
+                        # Check if "run manual" message continues to be received
+                        if time.time() - last_manual_run_time > 1:  # Timeout if no "run manual" received within 1 second
+                            stop_motor()
+                            break
+
             elif command == "slowdown":
                 # Handle slowdown command by adjusting motor speed
                 motor_speed = 0.005  # Increase sleep time to slow down the motor
                 print("MQTT command: slowdown")
+                
+                # If motor is running, apply the slowdown effect
+                if motor_running:
+                    print(f"Slowing down motor to speed: {motor_speed}")
 
             elif command == "stop":
                 print("MQTT command: stop")
@@ -211,6 +224,7 @@ def on_message(client, userdata, msg):
 
         except Exception as e:
             print(f"Error processing MQTT message: {e}")
+
 
 
 
