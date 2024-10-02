@@ -106,11 +106,11 @@ def check_buttons():
                 if GPIO.input(BWD_BUTTON) == GPIO.HIGH:
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
-                run_motor(GPIO.HIGH, current_speed)
+                run_motor(GPIO.LOW, current_speed)
 
             # Constant speed phase while the button is pressed
             while GPIO.input(BWD_BUTTON) == GPIO.LOW:
-                run_motor(GPIO.HIGH, max_speed)
+                run_motor(GPIO.LOW, max_speed)
 
             # Stop the motor when the button is released
             stop_motor()
