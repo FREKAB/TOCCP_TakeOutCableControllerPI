@@ -68,6 +68,9 @@ def check_buttons():
     accel_steps = 1600   # Number of steps for acceleration
 
     while True:
+        # Check for MQTT messages frequently
+        client.loop_read()  # Process any pending MQTT messages
+
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
@@ -144,12 +147,15 @@ def check_buttons():
 
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
+
         elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
             emergency_brake()
             while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                 time.sleep(0.01)
             release_emergency_brake()
+
         time.sleep(0.01)  # Small delay to prevent excessive CPU usage
+
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
