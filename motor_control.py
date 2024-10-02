@@ -196,7 +196,7 @@ def on_message(client, userdata, msg):
                         direction = GPIO.HIGH if rotations > 0 else GPIO.LOW
                         print(f"MQTT command: {'forward' if rotations > 0 else 'backward'} for {steps} steps")
                         GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-                        motor_speed = 0.001  # Normal speed for old command
+                        motor_speed = 0.01  # Normal speed for old command
                         motor_running = True
 
                         for step in range(steps):
