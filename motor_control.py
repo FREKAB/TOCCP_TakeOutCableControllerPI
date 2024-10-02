@@ -13,8 +13,7 @@ STOP_BUTTON = 25  # Stop button
 EMERGENCY_STOP = 24  # Emergency stop button
 
 steps_per_rotation = 1600  # Adjust based on your motor and stepper driver
-last_button_press = 0
-debounce_time = 20  # millisecond
+motor_running = False
 
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
@@ -26,9 +25,8 @@ GPIO.setup(BWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(STOP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-# Global variables
-emergency_stop = False
-motor_running = False
+# Global variables for motor state
+stop_signal_received = False
 
 def reset_motor_driver():
     print("Resetting motor driver...")
@@ -39,19 +37,30 @@ def reset_motor_driver():
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
     print("Motor driver reset complete.")
 
-def run_motor(direction, speed=0.001):
+def run_motor(direction, speed=0.001, steps=None):
+    global stop_signal_received
     GPIO.output(DIR, direction)
-    GPIO.output(PUL, GPIO.LOW)
-    time.sleep(speed)
-    GPIO.output(PUL, GPIO.HIGH)
-    time.sleep(speed)
+    stop_signal_received = False
+    step_count = 0
     
+    while steps is None or step_count < steps:
+        if stop_signal_received:
+            break
+        GPIO.output(PUL, GPIO.LOW)
+        time.sleep(speed)
+        GPIO.output(PUL, GPIO.HIGH)
+        time.sleep(speed)
+        step_count += 1
+
+    GPIO.output(ENABLE_PIN, GPIO.LOW)
+    print(f"Motor run completed. Steps executed: {step_count}")
+
 def stop_motor():
-    global motor_running
+    global stop_signal_received, motor_running
+    stop_signal_received = True
     motor_running = False
     GPIO.output(ENABLE_PIN, GPIO.LOW)  # Disable the motor
-    print("Motor stopped")
-
+    print("Motor stopped.")
 
 def emergency_brake():
     GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor
@@ -61,171 +70,39 @@ def release_emergency_brake():
     GPIO.output(ENABLE_PIN, GPIO.LOW)  # Re-enable the motor
     print("Emergency brake released")
 
-def check_buttons():
-    global motor_running
-    max_speed = 0.0002  # Minimum delay between pulses (maximum speed)
-    start_speed = 0.001  # Starting speed (larger delay)
-    accel_steps = 1600   # Number of steps for acceleration
-
-    while True:
-        if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
-            
-            # Acceleration phase
-            for i in range(accel_steps):
-                if GPIO.input(FWD_BUTTON) == GPIO.HIGH:
-                    break
-                current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
-                GPIO.output(PUL, GPIO.HIGH)
-                time.sleep(current_speed)
-                GPIO.output(PUL, GPIO.LOW)
-                time.sleep(current_speed)
-                
-                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                    emergency_brake()
-                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        time.sleep(0.01)
-                    release_emergency_brake()
-                    break
-
-            # Constant speed phase
-            while GPIO.input(FWD_BUTTON) == GPIO.LOW:
-                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                    emergency_brake()
-                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        time.sleep(0.01)
-                    release_emergency_brake()
-                else:
-                    GPIO.output(PUL, GPIO.HIGH)
-                    time.sleep(max_speed)
-                    GPIO.output(PUL, GPIO.LOW)
-                    time.sleep(max_speed)
-
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
-            print("Forward button released")
-
-        elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
-            
-            # Acceleration phase
-            for i in range(accel_steps):
-                if GPIO.input(BWD_BUTTON) == GPIO.HIGH:
-                    break
-                current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
-                GPIO.output(PUL, GPIO.HIGH)
-                time.sleep(current_speed)
-                GPIO.output(PUL, GPIO.LOW)
-                time.sleep(current_speed)
-                
-                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                    emergency_brake()
-                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        time.sleep(0.01)
-                    release_emergency_brake()
-                    break
-
-            # Constant speed phase
-            while GPIO.input(BWD_BUTTON) == GPIO.LOW:
-                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                    emergency_brake()
-                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        time.sleep(0.01)
-                    release_emergency_brake()
-                else:
-                    GPIO.output(PUL, GPIO.HIGH)
-                    time.sleep(max_speed)
-                    GPIO.output(PUL, GPIO.LOW)
-                    time.sleep(max_speed)
-
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
-            print("Backward button released")
-
-        elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
-            stop_motor()
-        elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-            emergency_brake()
-            while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                time.sleep(0.01)
-            release_emergency_brake()
-        time.sleep(0.01)  # Small delay to prevent excessive CPU usage
-
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+    print(f"Connected to MQTT broker with result code {rc}")
     client.subscribe("motor/control")
 
-
-def run_motor_for_time(direction, duration, speed=0.001):
-    """
-    Run the motor for a given duration in seconds.
-    This allows us to check for MQTT messages or other interrupts during the motor's operation.
-    """
-    global motor_running
-    motor_running = True
-    GPIO.output(DIR, direction)  # Set motor direction
-
-    start_time = time.time()
-    while motor_running and (time.time() - start_time) < duration:
-        GPIO.output(PUL, GPIO.LOW)  # Pulse LOW
-        time.sleep(speed)  # Control speed
-        GPIO.output(PUL, GPIO.HIGH)  # Pulse HIGH
-        time.sleep(speed)
-
-        # Allow MQTT message processing
-        client.loop(0.01)  # Check MQTT messages for 10ms
-
-        # Check for emergency stop
-        if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-            emergency_brake()
-            while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                time.sleep(0.01)  # Wait for emergency stop to be released
-            release_emergency_brake()
-            break
-
-    stop_motor()  # Stop motor after the time is reached or interrupted
-    print("Motor stopped after running for", duration, "seconds")
-
-
 def on_message(client, userdata, msg):
-    """
-    Handle incoming MQTT messages and control the motor based on the message content.
-    """
     global motor_running
     if msg.topic == "motor/control":
-        try:
-            command = msg.payload.decode().strip()
-            if command.startswith("run"):
-                # Parse the duration from the command, e.g., "run 5" means run for 5 seconds
-                _, duration = command.split()
-                duration = float(duration)  # Convert to float for seconds
-                direction = GPIO.HIGH if float(duration) > 0 else GPIO.LOW  # Adjust direction
-
-                print(f"MQTT command: run motor for {duration} seconds")
-                GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-                run_motor_for_time(direction, abs(duration))  # Run motor for the specified time
-
-            elif command == "stop":
-                print("MQTT command: stop motor")
-                stop_motor()  # Stop the motor immediately
-
+        command = msg.payload.decode().strip().lower()
+        print(f"MQTT message received: {command}")
+        
+        if command.startswith("run"):
+            if not motor_running:
+                motor_running = True
+                try:
+                    # Extract duration from command and convert to float
+                    duration = float(command.split()[1])
+                    print(f"Running motor for {duration} seconds.")
+                    
+                    GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+                    direction = GPIO.LOW  # Adjust direction as needed (forward)
+                    thread = threading.Thread(target=run_motor, args=(direction, 0.001, steps_per_rotation * duration))
+                    thread.start()
+                except Exception as e:
+                    print(f"Invalid run command: {e}")
             else:
-                print(f"Unknown command received: {command}")
-
-        except ValueError as e:
-            print(f"Error parsing MQTT command: {e}")
-
-
-
-
+                print("Motor is already running.")
+        
+        elif command == "stop":
+            print("Stopping motor via MQTT")
+            stop_motor()
 
 try:
     reset_motor_driver()  # Reset the motor driver at the start
-
-    # Start button checking in a separate thread
-    button_thread = threading.Thread(target=check_buttons)
-    button_thread.daemon = True
-    button_thread.start()
 
     # MQTT setup
     mqtt_broker_ip = "192.168.10.9"  # Replace with your broker IP
@@ -234,12 +111,18 @@ try:
     client.on_message = on_message
 
     client.connect(mqtt_broker_ip, 1883, 60)
-    client.loop_forever()  # Keep listening for incoming messages
+    client.loop_start()  # Run the MQTT loop in a background thread
+
+    # Main program loop (for example, monitoring buttons)
+    while True:
+        if GPIO.input(STOP_BUTTON) == GPIO.LOW:
+            stop_motor()
+        elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+            emergency_brake()
+        time.sleep(0.01)
 
 except KeyboardInterrupt:
-    print("Program interrupted by user")
-except Exception as e:
-    print(f"An error occurred: {e}")
+    print("Program interrupted by user.")
 finally:
     GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Ensure motor is disabled on program exit
     GPIO.cleanup()
