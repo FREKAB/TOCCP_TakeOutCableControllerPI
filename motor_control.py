@@ -76,7 +76,7 @@ def check_buttons():
     while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
+            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward
             motor_running = True
             current_speed = start_speed
 
