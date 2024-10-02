@@ -62,7 +62,7 @@ def release_emergency_brake():
     print("Emergency brake released")
 
 def check_buttons():
-    global motor_running
+    global motor_running, client
     max_speed = 0.0002  # Minimum delay between pulses (maximum speed)
     start_speed = 0.001  # Starting speed (larger delay)
     accel_steps = 1600   # Number of steps for acceleration
