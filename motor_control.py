@@ -13,7 +13,7 @@ STOP_BUTTON = 25
 EMERGENCY_STOP = 24
 
 steps_per_rotation = 1600
-debounce_time = 20  # millisecond
+debounce_time = 10  # millisecond
 
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
@@ -28,10 +28,10 @@ GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # Global variables
 emergency_stop = False
 motor_running = False
-motor_speed = 0.0001  # Default motor speed
+motor_speed = 0.001  # Default motor speed
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
-timeout_threshold = 0.1  # Timeout threshold for manual run in seconds
+timeout_threshold = 1  # Timeout threshold for manual run in seconds
 
 # Motor control functions
 def run_motor(direction, speed=0.001):
@@ -97,7 +97,7 @@ def check_buttons():
 
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to backward
             motor_running = True
             current_speed = start_speed
 
@@ -106,11 +106,11 @@ def check_buttons():
                 if GPIO.input(BWD_BUTTON) == GPIO.HIGH:
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
-                run_motor(GPIO.HIGH, current_speed)
+                run_motor(GPIO.LOW, current_speed)
 
             # Constant speed phase while the button is pressed
             while GPIO.input(BWD_BUTTON) == GPIO.LOW:
-                run_motor(GPIO.HIGH, max_speed)
+                run_motor(GPIO.LOW, max_speed)
 
             # Stop the motor when the button is released
             stop_motor()
@@ -144,7 +144,7 @@ def on_message(client, userdata, msg):
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)
             motor_running = True
-            motor_speed = 0.00000001
+            motor_speed = 0.0001
             print("Motor started manually")
 
     elif command == "slowdown":
@@ -190,7 +190,7 @@ def motor_control_loop():
                 print("Timeout, stopping motor")
                 stop_motor()
 
-        time.sleep(0.001)
+        time.sleep(0.0001)
 
 
 # MQTT and motor control setup
