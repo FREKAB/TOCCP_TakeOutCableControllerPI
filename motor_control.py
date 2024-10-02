@@ -168,24 +168,33 @@ def on_message(client, userdata, msg):
                 GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
                 GPIO.output(DIR, direction)
                 motor_running = True
+
+                # Short loop for each step
                 for _ in range(steps):
-                    # Check for new MQTT messages during each motor step
-                    client.loop(timeout=0.01)  # This allows the client to process incoming messages
+                    # Process MQTT messages in the background
+                    client.loop(timeout=0.01)  # Check for new messages with a small timeout
+
+                    # Check if we received a stop command during motor operation
+                    if not motor_running:
+                        print("Motor stopped by MQTT stop command")
+                        break
+
                     if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                         emergency_brake()
                         while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                             time.sleep(0.01)
                         release_emergency_brake()
                         break
-                    if not motor_running:  # If stop command was received
-                        print("Stopping motor due to stop command")
-                        break
-                    run_motor(direction)  # Execute the motor step
+
+                    run_motor(direction)  # Run motor step
+
                 motor_running = False
                 GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
+
             else:
                 print("MQTT command: stop")
                 stop_motor()
+
         except ValueError:
             command = msg.payload.decode().strip().lower()
             if command == "stop":
@@ -193,6 +202,7 @@ def on_message(client, userdata, msg):
                 stop_motor()
             else:
                 print(f"Unknown command: {command}")
+
 
 
 
