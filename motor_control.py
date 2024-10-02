@@ -118,13 +118,15 @@ def check_buttons():
 
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
+
         elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
             emergency_brake()
             while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                time.sleep(0.01)
+                time.sleep(0.01)  # Wait for the emergency stop to be released
             release_emergency_brake()
 
         time.sleep(0.01)  # Small delay to prevent excessive CPU usage
+
 
 # MQTT callback functions
 def on_connect(client, userdata, flags, rc):
@@ -175,6 +177,7 @@ def on_message(client, userdata, msg):
         except ValueError:
             print(f"Unknown command: {command}")
 
+
 # Motor control loop to monitor "run manual" heartbeat
 def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
@@ -188,6 +191,7 @@ def motor_control_loop():
                 stop_motor()
 
         time.sleep(0.001)
+
 
 # MQTT and motor control setup
 def setup():
