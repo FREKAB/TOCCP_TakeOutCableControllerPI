@@ -62,15 +62,12 @@ def release_emergency_brake():
     print("Emergency brake released")
 
 def check_buttons():
-    global motor_running, client
+    global motor_running
     max_speed = 0.0002  # Minimum delay between pulses (maximum speed)
     start_speed = 0.001  # Starting speed (larger delay)
     accel_steps = 1600   # Number of steps for acceleration
 
     while True:
-        # Check for MQTT messages frequently
-        client.loop_read()  # Process any pending MQTT messages
-
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
@@ -147,15 +144,12 @@ def check_buttons():
 
         elif GPIO.input(STOP_BUTTON) == GPIO.LOW:
             stop_motor()
-
         elif GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
             emergency_brake()
             while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                 time.sleep(0.01)
             release_emergency_brake()
-
         time.sleep(0.01)  # Small delay to prevent excessive CPU usage
-
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
@@ -167,7 +161,7 @@ def on_message(client, userdata, msg):
     if msg.topic == "motor/control":
         try:
             command = float(msg.payload.decode().strip())
-            steps = int(abs(command) * steps_per_rotation)  # Convert to rotations to steps
+            steps = int(abs(command) * steps_per_rotation)  # Convert rotations to steps
             if steps > 0:
                 direction = GPIO.HIGH if command > 0 else GPIO.LOW
                 print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
@@ -175,8 +169,9 @@ def on_message(client, userdata, msg):
                 GPIO.output(DIR, direction)
                 motor_running = True
 
-                # Run motor in smaller steps to allow checking for stop commands
+                # Run motor in small steps, frequently checking for stop commands
                 for step in range(steps):
+                    # Check for emergency stop
                     if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                         emergency_brake()
                         while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
@@ -184,14 +179,15 @@ def on_message(client, userdata, msg):
                         release_emergency_brake()
                         break
 
+                    # Check if motor has been stopped via MQTT
                     if not motor_running:
                         break  # Stop the motor if a stop command has been received
-                    
-                    # Run the motor for one step
+
+                    # Run one step of the motor
                     run_motor(direction)
-                    
-                    # Check MQTT messages more frequently
-                    client.loop_read()  # Process any pending MQTT messages
+
+                    # Allow frequent processing of MQTT messages
+                    client.loop(0.01)  # Process MQTT messages for 10ms at every step
 
                 motor_running = False
                 GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
@@ -205,7 +201,6 @@ def on_message(client, userdata, msg):
                 stop_motor()
             else:
                 print(f"Unknown command: {command}")
-
 
 
 
