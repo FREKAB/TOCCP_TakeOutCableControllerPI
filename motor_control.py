@@ -36,9 +36,9 @@ timeout_threshold = 1  # Timeout threshold for manual run in seconds
 # Motor control functions
 def run_motor(direction, speed=0.001):
     GPIO.output(DIR, direction)
-    GPIO.output(PUL, GPIO.HIGH)
-    time.sleep(speed)
     GPIO.output(PUL, GPIO.LOW)
+    time.sleep(speed)
+    GPIO.output(PUL, GPIO.HIGH)
     time.sleep(speed)
 
 def stop_motor():
@@ -144,7 +144,7 @@ def on_message(client, userdata, msg):
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)
             motor_running = True
-            motor_speed = 0.001
+            motor_speed = 0.0001
             print("Motor started manually")
 
     elif command == "slowdown":
