@@ -54,6 +54,15 @@ def release_emergency_brake():
     GPIO.output(ENABLE_PIN, GPIO.LOW)  # Re-enable the motor
     print("Emergency brake released")
 
+def reset_motor_driver():
+    print("Resetting motor driver...")
+    GPIO.output(ENABLE_PIN, GPIO.HIGH)
+    time.sleep(0.1)
+    GPIO.output(ENABLE_PIN, GPIO.LOW)
+    time.sleep(0.1)
+    GPIO.output(ENABLE_PIN, GPIO.HIGH)
+    print("Motor driver reset complete.")
+
 # Function to handle buttons
 def check_buttons():
     global motor_running
