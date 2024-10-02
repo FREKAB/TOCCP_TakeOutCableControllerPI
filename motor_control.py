@@ -31,7 +31,7 @@ motor_running = False
 motor_speed = 0.0001  # Default motor speed
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
-timeout_threshold = 1  # Timeout threshold for manual run in seconds
+timeout_threshold = 0.1  # Timeout threshold for manual run in seconds
 
 # Motor control functions
 def run_motor(direction, speed=0.001):
