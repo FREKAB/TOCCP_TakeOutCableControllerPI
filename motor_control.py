@@ -180,6 +180,7 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)
+            GPIO.output(DIR, GPIO.LOW)
             motor_running = True
             motor_speed = 0.0001
             print("Motor started manually")
