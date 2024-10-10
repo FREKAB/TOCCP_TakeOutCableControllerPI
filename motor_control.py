@@ -223,7 +223,7 @@ def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     while True:
         if motor_running:
-            GPIO.output(DIR, GPIO.LOW)
+            GPIO.output(DIR, GPIO.HIGH)
             run_motor(GPIO.LOW, motor_speed)
            
 
