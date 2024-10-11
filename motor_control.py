@@ -28,7 +28,6 @@ GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # Global variables
 emergency_stop = False
 motor_running = False
-motor_speed = 0.0001  # Default motor speed
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
 timeout_threshold = 1  # Timeout threshold for manual run in seconds
@@ -207,7 +206,8 @@ def on_message(client, userdata, msg):
 
     if command == "run manual":
         last_manual_run_time = time.time()
-        motor_speed = 0.0001  # Set a consistent speed for manual mode
+        manual_mode = True
+        motor_speed = 0.002  # Set a consistent speed for manual mode
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
@@ -215,6 +215,7 @@ def on_message(client, userdata, msg):
             print("Motor started manually in forward direction")
 
     elif command == "slowdown":
+        manual_mode = True
         motor_speed = 0.005  # Slow down the motor
         print("MQTT command: slowdown")
 
