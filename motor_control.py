@@ -28,7 +28,7 @@ GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # Global variables
 emergency_stop = False
 motor_running = False
-motor_speed = 0.01  # Default motor speed
+motor_speed = 0.0001  # Default motor speed
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
 timeout_threshold = 1  # Timeout threshold for manual run in seconds
@@ -166,69 +166,87 @@ def check_buttons():
 
 
 # MQTT callback functions
+# MQTT callback functions
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
 
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
+
     command = msg.payload.decode().strip().lower()
 
+    # Handle 'run manual' mode
     if command == "run manual":
         last_manual_run_time = time.time()
-        manual_mode = True  # Mark motor as in manual mode
+        manual_mode = True  # Mark as manual mode
+        motor_speed = 0.5  # Set consistent speed for manual mode
 
         if not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)
-            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward (adjust if needed)
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
+            GPIO.output(DIR, GPIO.LOW)         # Default direction (adjust if needed)
             motor_running = True
-            print("Motor started manually")
+            print("Motor started in manual mode")
 
+    # Handle 'slowdown' command to adjust motor speed
     elif command == "slowdown":
-        motor_speed = 0.005  # Increase delay for slower speed
-        print("MQTT command: slowdown")
+        motor_speed = 0.005  # Increase delay for slower operation
+        print("Motor slowdown activated")
 
+    # Handle stop command
     elif command == "stop":
         stop_motor()
 
+    # Handle rotation commands with direction and steps
     else:
         try:
-            command = float(msg.payload.decode().strip())
-            steps = int(abs(command) * steps_per_rotation)  # Convert to rotations to steps
-            if steps > 0:
-                direction = GPIO.HIGH if command > 0 else GPIO.LOW
-                print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
-                GPIO.output(ENABLE_PIN, GPIO.LOW)
-                GPIO.output(DIR, direction)
-                motor_running = True
-                for _ in range(steps):
-                    if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                        emergency_brake()
-                        while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                            time.sleep(0.01)
-                        release_emergency_brake()
-                        break
-                    if not motor_running:
-                        break
-                    run_motor(direction, motor_speed)
-                motor_running = False
-                GPIO.output(ENABLE_PIN, GPIO.HIGH)
+            rotations = float(command)
+            steps = int(abs(rotations) * steps_per_rotation)  # Calculate steps from rotations
+            direction = GPIO.HIGH if rotations > 0 else GPIO.LOW
+            motor_speed = 0.5  # Default speed for preset commands
+
+            print(f"Running motor {'forward' if rotations > 0 else 'backward'} for {steps} steps")
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
+            GPIO.output(DIR, direction)        # Set direction
+            motor_running = True
+
+            for _ in range(steps):
+                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    emergency_brake()
+                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                        time.sleep(0.01)
+                    release_emergency_brake()
+                    break
+                if not motor_running:
+                    break
+                run_motor(direction, motor_speed)
+
+            motor_running = False
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable motor after command
         except ValueError:
-            print(f"Unknown command: {command}")
+            print(f"Invalid command received: {command}")
 
 # Motor control loop for "run manual"
 def motor_control_loop():
-    global motor_running, last_manual_run_time, motor_speed, manual_mode, direction
-    direction = GPIO.LOW if manual_mode is True else GPIO.HIGH
+    global motor_running, last_manual_run_time, motor_speed, manual_mode
+
     while True:
         if motor_running:
-            run_motor(direction, motor_speed)
+            if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                emergency_brake()
+                while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    time.sleep(0.01)
+                release_emergency_brake()
 
+            run_motor(GPIO.LOW, motor_speed)  # Consistent direction and speed
+
+            # Timeout check for manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
-                print("Timeout, stopping motor")
+                print("Timeout reached in manual mode, stopping motor")
                 stop_motor()
 
-        time.sleep(0.00001)  # Adjust this delay for smoother operation
+        time.sleep(0.0005)  # Small delay for smoother operation
+
 
 
 # MQTT and motor control setup
