@@ -228,7 +228,7 @@ def motor_control_loop():
                 print("Timeout, stopping motor")
                 stop_motor()
 
-        time.sleep(0.0005)  # Adjust this delay for smoother operation
+        time.sleep(0.05)  # Adjust this delay for smoother operation
 
 
 # MQTT and motor control setup
