@@ -43,7 +43,7 @@ def reset_motor_driver():
     print("Motor driver reset complete.")
 
 # Motor control functions
-def run_motor(direction, speed=0.1):
+def run_motor(direction, speed=0.001):
     GPIO.output(DIR, direction)
     GPIO.output(PUL, GPIO.LOW)
     time.sleep(speed)
@@ -215,7 +215,6 @@ def on_message(client, userdata, msg):
 
     elif command == "slowdown":
         manual_mode = True
-        motor_speed = 0.1  # Slow down the motor
         print("MQTT command: slowdown")
 
     elif command == "stop":
