@@ -238,11 +238,6 @@ def motor_control_loop():
                     time.sleep(0.01)
                 release_emergency_brake()
 
-            GPIO.output(DIR, GPIO.HIGH)
-            GPIO.output(PUL, GPIO.LOW)
-            time.sleep(0.01)
-            GPIO.output(PUL, GPIO.HIGH)
-            time.sleep(0.01)
 
             # Timeout check for manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
