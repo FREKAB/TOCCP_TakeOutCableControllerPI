@@ -201,7 +201,6 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
-            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward for manual mode
             motor_running = True
             print("Motor started manually in forward direction")
 
