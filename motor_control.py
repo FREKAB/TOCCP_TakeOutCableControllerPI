@@ -170,6 +170,11 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
 
+# MQTT callback functions
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code " + str(rc))
+    client.subscribe("motor/control")
+
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     command = msg.payload.decode().strip().lower()
@@ -179,7 +184,8 @@ def on_message(client, userdata, msg):
         manual_mode = True  # Mark motor as in manual mode
 
         if not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)
+            GPIO.output(ENABLE_PIN, GPIO.LOW)
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward (adjust if needed)
             motor_running = True
             motor_speed = 0.0001
             print("Motor started manually")
@@ -218,12 +224,13 @@ def on_message(client, userdata, msg):
             print(f"Unknown command: {command}")
 
 
+
 # Motor control loop to monitor "run manual" heartbeat
 def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     while True:
         if motor_running:
-            run_motor(GPIO.HIGH, motor_speed)
+            run_motor(GPIO.LOW, motor_speed)
 
             # Check timeout only if in manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
