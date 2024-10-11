@@ -179,7 +179,7 @@ def on_message(client, userdata, msg):
         manual_mode = True  # Mark motor as in manual mode
 
         if not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)
+            GPIO.output(ENABLE_PIN, GPIO.LOW)
             motor_running = True
             motor_speed = 0.0001
             print("Motor started manually")
@@ -223,7 +223,7 @@ def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     while True:
         if motor_running:
-            run_motor(GPIO.LOW, motor_speed)
+            run_motor(GPIO.HIGH, motor_speed)
 
             # Check timeout only if in manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
