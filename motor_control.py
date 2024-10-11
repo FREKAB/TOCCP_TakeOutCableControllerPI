@@ -188,7 +188,6 @@ def motor_control_loop():
                 release_emergency_brake()
 
             # Run motor in the specified direction with the set speed
-            GPIO.output(DIR, direction)  # Set direction for manual mode
             run_motor(direction, motor_speed)
 
             # Check if timeout has been reached in manual mode
