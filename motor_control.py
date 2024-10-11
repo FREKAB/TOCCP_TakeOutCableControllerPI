@@ -211,7 +211,7 @@ def on_message(client, userdata, msg):
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             motor_running = True
-            print("Motor started manually in forward direction")
+            print(f"Motor started manually in forward direction{motor_speed}")
 
     elif command == "slowdown":
         manual_mode = True
