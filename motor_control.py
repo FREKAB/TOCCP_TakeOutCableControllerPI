@@ -178,8 +178,9 @@ def on_message(client, userdata, msg):
 
     # Handle 'run manual' mode
     if command == "run manual":
-        last_manual_run_time = time.time()
 
+
+    
 
     # Handle 'slowdown' command to adjust motor speed
     elif command == "slowdown":
@@ -190,6 +191,34 @@ def on_message(client, userdata, msg):
     elif command == "stop":
         stop_motor()
 
+    # Handle rotation commands with direction and steps
+    else:
+        try:
+            rotations = float(command)
+            steps = int(abs(rotations) * steps_per_rotation)  # Calculate steps from rotations
+            direction = GPIO.HIGH if rotations > 0 else GPIO.LOW
+            motor_speed = 0.5  # Default speed for preset commands
+
+            print(f"Running motor {'forward' if rotations > 0 else 'backward'} for {steps} steps")
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
+            GPIO.output(DIR, direction)        # Set direction
+            motor_running = True
+
+            for _ in range(steps):
+                if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    emergency_brake()
+                    while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                        time.sleep(0.01)
+                    release_emergency_brake()
+                    break
+                if not motor_running:
+                    break
+                run_motor(direction, motor_speed)
+
+            motor_running = False
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable motor after command
+        except ValueError:
+            print(f"Invalid command received: {command}")
 
 # Motor control loop for "run manual"
 def motor_control_loop():
