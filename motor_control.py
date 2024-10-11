@@ -227,7 +227,7 @@ def motor_control_loop():
     while True:
         if motor_running:
             # Run motor in forward direction; change to GPIO.LOW for reverse if needed
-            run_motor(GPIO.LOW, motor_speed)
+            run_motor(GPIO.HIGH, motor_speed)
 
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
