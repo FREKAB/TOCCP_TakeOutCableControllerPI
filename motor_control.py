@@ -187,25 +187,24 @@ def on_message(client, userdata, msg):
             GPIO.output(ENABLE_PIN, GPIO.LOW)
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward (adjust if needed)
             motor_running = True
-            motor_speed = 0.0001
+            motor_speed = 0.001  # Set a consistent speed for smoother manual operation
             print("Motor started manually")
 
     elif command == "slowdown":
-        motor_speed = 0.005  # Increase sleep time to slow down the motor
+        motor_speed = 0.005  # Increase delay for slower speed
         print("MQTT command: slowdown")
 
     elif command == "stop":
         stop_motor()
 
     else:
-        # Handle rotation command (normal operation)
         try:
             command = float(msg.payload.decode().strip())
             steps = int(abs(command) * steps_per_rotation)  # Convert to rotations to steps
             if steps > 0:
                 direction = GPIO.HIGH if command > 0 else GPIO.LOW
                 print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
-                GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+                GPIO.output(ENABLE_PIN, GPIO.LOW)
                 GPIO.output(DIR, direction)
                 motor_running = True
                 for _ in range(steps):
@@ -217,27 +216,25 @@ def on_message(client, userdata, msg):
                         break
                     if not motor_running:
                         break
-                    run_motor(direction)
+                    run_motor(direction, motor_speed)
                 motor_running = False
-                GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
+                GPIO.output(ENABLE_PIN, GPIO.HIGH)
         except ValueError:
             print(f"Unknown command: {command}")
 
-
-
-# Motor control loop to monitor "run manual" heartbeat
+# Motor control loop for "run manual"
 def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     while True:
         if motor_running:
             run_motor(GPIO.LOW, motor_speed)
 
-            # Check timeout only if in manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
                 stop_motor()
 
-        time.sleep(0.0001)
+        time.sleep(0.0005)  # Adjust this delay for smoother operation
+
 
 
 # MQTT and motor control setup
