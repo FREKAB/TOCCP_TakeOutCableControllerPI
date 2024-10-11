@@ -181,7 +181,7 @@ def motor_control_loop():
     while True:
         if motor_running:
             # Set direction to GPIO.HIGH for forward movement
-            GPIO.output(DIR, GPIO.HIGH)
+            GPIO.output(DIR, GPIO.LOW)
             run_motor(GPIO.HIGH, motor_speed)
 
             # Check timeout for manual mode
