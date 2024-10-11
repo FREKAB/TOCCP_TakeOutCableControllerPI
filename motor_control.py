@@ -181,6 +181,7 @@ def motor_control_loop():
     while True:
         if motor_running:
             # Set direction to GPIO.HIGH for forward movement
+            GPIO.output(DIR, GPIO.HIGH)
             run_motor(GPIO.HIGH, motor_speed)
 
             # Check timeout for manual mode
@@ -202,7 +203,6 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)
-            GPIO.output(DIR, GPIO.LOW)  # Ensure direction is forward
             motor_running = True
             print("Motor started manually")
 
