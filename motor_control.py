@@ -175,20 +175,20 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
 
+# Motor control loop for "run manual"
 def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
-    direction = GPIO.HIGH  # Set the default direction to forward for manual mode
     while True:
         if motor_running:
-            GPIO.output(DIR, direction)  # Set direction for manual mode
-            run_motor(direction, motor_speed)  # Use the direction in `run_motor`
+            # Set direction to GPIO.HIGH for forward movement
+            run_motor(GPIO.HIGH, motor_speed)
 
+            # Check timeout for manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
                 stop_motor()
 
-        time.sleep(0.0001)
-
+        time.sleep(0.0001)  # Adjust this delay for smoother operation
 
 # MQTT `on_message` function for handling commands
 def on_message(client, userdata, msg):
@@ -197,16 +197,17 @@ def on_message(client, userdata, msg):
 
     if command == "run manual":
         last_manual_run_time = time.time()
-        manual_mode = True
-        motor_speed = 0.001  # Set a consistent speed for manual mode
+        manual_mode = True  # Mark motor as in manual mode
+        motor_speed = 0.001  # Set speed for manual mode
 
         if not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(ENABLE_PIN, GPIO.LOW)
+            GPIO.output(DIR, GPIO.HIGH)  # Ensure direction is forward
             motor_running = True
-            print("Motor started manually in forward direction")
+            print("Motor started manually")
 
     elif command == "slowdown":
-        motor_speed = 0.005  # Slow down the motor
+        motor_speed = 0.005  # Increase delay to slow down
         print("MQTT command: slowdown")
 
     elif command == "stop":
@@ -238,7 +239,6 @@ def on_message(client, userdata, msg):
                 GPIO.output(ENABLE_PIN, GPIO.HIGH)
         except ValueError:
             print(f"Unknown command: {command}")
-
 
 
 
