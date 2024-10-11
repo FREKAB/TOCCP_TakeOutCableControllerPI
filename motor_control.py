@@ -249,7 +249,7 @@ def motor_control_loop():
                 print("Timeout reached in manual mode, stopping motor")
                 stop_motor()
 
-        time.sleep(0.0005)  # Small delay for smoother operation
+        time.sleep(0.0001)  # Small delay for smoother operation
 
 
 
