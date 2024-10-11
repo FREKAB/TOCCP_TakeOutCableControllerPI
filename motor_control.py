@@ -182,7 +182,7 @@ def on_message(client, userdata, msg):
             GPIO.output(ENABLE_PIN, GPIO.LOW)
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward (adjust if needed)
             motor_running = True
-            motor_speed = 0.001  # Set a consistent speed for smoother manual operation
+            motor_speed = 0.5  # Set a consistent speed for smoother manual operation
             print("Motor started manually")
 
     elif command == "slowdown":
