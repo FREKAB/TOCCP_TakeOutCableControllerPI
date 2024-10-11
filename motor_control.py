@@ -185,7 +185,7 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             # Explicitly set direction for manual run
-            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward (adjust if needed)
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward (adjust if needed)
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
             motor_running = True
             motor_speed = 0.0001  # Adjust for smooth operation in manual mode
