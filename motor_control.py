@@ -176,6 +176,7 @@ def on_connect(client, userdata, flags, rc):
 
 def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
+    direction = GPIO.LOW  # Set the default direction to forward for manual mode
     while True:
         if motor_running:
             # Check for emergency stop before running motor step
@@ -205,7 +206,7 @@ def on_message(client, userdata, msg):
     if command == "run manual":
         last_manual_run_time = time.time()
         manual_mode = True
-        motor_speed = 0.1  # Set a consistent speed for manual mode
+        motor_speed = 1  # Set a consistent speed for manual mode
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
