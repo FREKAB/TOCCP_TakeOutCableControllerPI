@@ -28,10 +28,10 @@ GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # Global variables
 emergency_stop = False
 motor_running = False
+motor_speed = 0.0001  # Default motor speed
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
-timeout_threshold = 0.5  # Timeout threshold for manual run in seconds
-motor_speed = 0.001
+timeout_threshold = 1  # Timeout threshold for manual run in seconds
 
 # Reset motor driver function
 def reset_motor_driver():
@@ -44,7 +44,7 @@ def reset_motor_driver():
     print("Motor driver reset complete.")
 
 # Motor control functions
-def run_motor(direction, speed=0.05):
+def run_motor(direction, speed=0.001):
     GPIO.output(DIR, direction)
     GPIO.output(PUL, GPIO.LOW)
     time.sleep(speed)
@@ -175,29 +175,20 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
 
-
-# Motor control loop for "run manual"
 def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
-    direction = GPIO.LOW  # Set the default direction for manual mode
+    direction = GPIO.HIGH  # Set the default direction to forward for manual mode
     while True:
         if motor_running:
-            # Check for emergency stop before running motor step
-            if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                emergency_brake()
-                while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
-                    time.sleep(0.01)
-                release_emergency_brake()
+            GPIO.output(DIR, direction)  # Set direction for manual mode
+            run_motor(direction, motor_speed)  # Use the direction in `run_motor`
 
-            # Run motor with current speed and direction
-            run_motor(direction, motor_speed)
-
-            # Timeout for "run manual" mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
                 stop_motor()
 
-        time.sleep(0.01)
+        time.sleep(0.0001)
+
 
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
@@ -206,16 +197,17 @@ def on_message(client, userdata, msg):
     if command == "run manual":
         last_manual_run_time = time.time()
         manual_mode = True
-        motor_speed = 0.05  # Set speed to a consistent low delay for "run manual" mode
+        motor_speed = 0.001  # Set a consistent speed for manual mode
 
         if not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)
-            GPIO.output(DIR, GPIO.LOW)  # Set direction for forward in manual mode
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward for manual mode
             motor_running = True
-            print(f"Motor started manually with speed {motor_speed} in forward direction")
+            print("Motor started manually in forward direction")
 
     elif command == "slowdown":
-        motor_speed = 0.005  # Adjust speed for slowdown
+        GPIO.output(DIR, GPIO.HIGH)  # Set direction explicitly for slowdown
+        motor_speed = 0.005  # Slow down the motor
         print("MQTT command: slowdown")
 
     elif command == "stop":
@@ -227,7 +219,7 @@ def on_message(client, userdata, msg):
             steps = int(abs(command) * steps_per_rotation)
             if steps > 0:
                 direction = GPIO.HIGH if command > 0 else GPIO.LOW
-                GPIO.output(DIR, direction)
+                GPIO.output(DIR, direction)  # Set direction for normal commands
                 print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
                 GPIO.output(ENABLE_PIN, GPIO.LOW)
                 motor_running = True
@@ -250,8 +242,18 @@ def on_message(client, userdata, msg):
 
 
 
+
+
+
+
+
 # MQTT and motor control setup
 def setup():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(PUL, GPIO.OUT)
+    GPIO.setup(DIR, GPIO.OUT)
+    GPIO.setup(ENABLE_PIN, GPIO.OUT)
+    GPIO.output(ENABLE_PIN, GPIO.HIGH)
 
     client = mqtt.Client()
     client.on_connect = on_connect
