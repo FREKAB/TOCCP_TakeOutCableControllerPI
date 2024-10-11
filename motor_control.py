@@ -43,7 +43,7 @@ def reset_motor_driver():
     print("Motor driver reset complete.")
 
 # Motor control functions
-def run_motor(direction, speed=0.001):
+def run_motor(direction, speed=0.1):
     GPIO.output(DIR, direction)
     GPIO.output(PUL, GPIO.LOW)
     time.sleep(speed)
