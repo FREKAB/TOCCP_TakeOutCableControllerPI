@@ -190,7 +190,6 @@ def on_message(client, userdata, msg):
     # Handle 'slowdown' command to adjust motor speed
     elif command == "slowdown":
         stop_motor()
-        time.sleep(1)
         print("Motor slowdown activated")
 
     # Handle stop command
