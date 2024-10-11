@@ -206,7 +206,7 @@ def on_message(client, userdata, msg):
     if command == "run manual":
         last_manual_run_time = time.time()
         manual_mode = True
-        motor_speed = 0.002  # Set a consistent speed for manual mode
+        motor_speed = 0.005  # Set a consistent speed for manual mode
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
