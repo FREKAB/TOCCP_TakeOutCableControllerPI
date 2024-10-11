@@ -185,6 +185,7 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)
+            GPIO.output(DIR, GPIO.LOW)  # Set direction to forward (adjust if needed)
             motor_running = True
             motor_speed = 0.001  # Set a consistent speed for smoother manual operation
             print("Motor started manually")
@@ -227,7 +228,7 @@ def motor_control_loop():
     while True:
         if motor_running:
             # Run motor in forward direction; change to GPIO.LOW for reverse if needed
-            run_motor(GPIO.HIGH, motor_speed)
+            run_motor(motor_speed)
 
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
