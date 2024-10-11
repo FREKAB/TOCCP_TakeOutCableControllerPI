@@ -180,9 +180,6 @@ def on_message(client, userdata, msg):
     if command == "run manual":
         last_manual_run_time = time.time()
 
-        if not motor_running:
-            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
-            GPIO.output(DIR, GPIO.HIGH)         # Default direction (adjust if needed)
 
     # Handle 'slowdown' command to adjust motor speed
     elif command == "slowdown":
