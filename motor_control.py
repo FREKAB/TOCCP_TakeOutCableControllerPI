@@ -43,6 +43,13 @@ def reset_motor_driver():
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
     print("Motor driver reset complete.")
 
+# Motor control functions
+def run_motor(direction, speed=0.001):
+    GPIO.output(DIR, direction)
+    GPIO.output(PUL, GPIO.LOW)
+    time.sleep(speed)
+    GPIO.output(PUL, GPIO.HIGH)
+    time.sleep(speed)
 
 def stop_motor():
     global motor_running, manual_mode
@@ -159,6 +166,7 @@ def check_buttons():
 
 
 # MQTT callback functions
+# MQTT callback functions
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
@@ -171,8 +179,14 @@ def on_message(client, userdata, msg):
     # Handle 'run manual' mode
     if command == "run manual":
         last_manual_run_time = time.time()
+        manual_mode = True  # Mark as manual mode
+        motor_speed = 0.5  # Set consistent speed for manual mode
 
-    
+        if not motor_running:
+            GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
+            GPIO.output(DIR, GPIO.HIGH)         # Default direction (adjust if needed)
+            motor_running = True
+            print("Motor started in manual mode")
 
     # Handle 'slowdown' command to adjust motor speed
     elif command == "slowdown":
@@ -224,6 +238,11 @@ def motor_control_loop():
                     time.sleep(0.01)
                 release_emergency_brake()
 
+            GPIO.output(DIR, GPIO.HIGH)
+            GPIO.output(PUL, GPIO.LOW)
+            time.sleep(0.01)
+            GPIO.output(PUL, GPIO.HIGH)
+            time.sleep(0.01)
 
             # Timeout check for manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
