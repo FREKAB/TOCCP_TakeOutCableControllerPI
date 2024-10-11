@@ -31,6 +31,7 @@ motor_running = False
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
 timeout_threshold = 0.5  # Timeout threshold for manual run in seconds
+motor_speed = 0.001
 
 # Reset motor driver function
 def reset_motor_driver():
@@ -174,8 +175,6 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
 
-# Set motor speed appropriately (adjust to suitable delay values)
-motor_speed = 0.05  # Default speed value in seconds (1 ms)
 
 # Motor control loop for "run manual"
 def motor_control_loop():
@@ -198,7 +197,7 @@ def motor_control_loop():
                 print("Timeout, stopping motor")
                 stop_motor()
 
-        time.sleep(0.0001)
+        time.sleep(0.01)
 
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
