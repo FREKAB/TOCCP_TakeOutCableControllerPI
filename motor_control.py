@@ -30,7 +30,7 @@ emergency_stop = False
 motor_running = False
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
-timeout_threshold = 1  # Timeout threshold for manual run in seconds
+timeout_threshold = 0.1  # Timeout threshold for manual run in seconds
 
 # Reset motor driver function
 def reset_motor_driver():
@@ -188,7 +188,7 @@ def motor_control_loop():
                 release_emergency_brake()
 
             # Run motor in the specified direction with the set speed
-            run_motor(direction, motor_speed=0.1)
+            run_motor(direction, motor_speed)
 
             # Check if timeout has been reached in manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
