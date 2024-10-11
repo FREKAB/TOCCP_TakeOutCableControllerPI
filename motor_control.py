@@ -218,10 +218,11 @@ def on_message(client, userdata, msg):
 
 # Motor control loop for "run manual"
 def motor_control_loop():
-    global motor_running, last_manual_run_time, motor_speed, manual_mode
+    global motor_running, last_manual_run_time, motor_speed, manual_mode, direction
+    direction = GPIO.HIGH if manual_mode is True else GPIO.LOW
     while True:
         if motor_running:
-            run_motor(GPIO.LOW, motor_speed)
+            run_motor(direction, motor_speed)
 
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
