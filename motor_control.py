@@ -227,9 +227,7 @@ def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     while True:
         if motor_running:
-            # Set the direction explicitly in manual mode
-            GPIO.output(DIR, GPIO.LOW)  # Adjust GPIO.HIGH to GPIO.LOW if needed for forward direction
-            run_motor(GPIO.HIGH, motor_speed)  # Ensure consistent direction by passing DIR setting here
+            run_motor(GPIO.HIGH, motor_speed, direction=GPIO.LOW)  # Ensure consistent direction by passing DIR setting here
 
             # Check timeout only if in manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
