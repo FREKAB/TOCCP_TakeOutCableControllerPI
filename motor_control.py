@@ -206,7 +206,7 @@ def on_message(client, userdata, msg):
     if command == "run manual":
         last_manual_run_time = time.time()
         manual_mode = True
-        motor_speed = 0.005  # Set a consistent speed for manual mode
+        motor_speed = 0.1  # Set a consistent speed for manual mode
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
@@ -215,7 +215,7 @@ def on_message(client, userdata, msg):
 
     elif command == "slowdown":
         manual_mode = True
-        motor_speed = 0.005  # Slow down the motor
+        motor_speed = 0.1  # Slow down the motor
         print("MQTT command: slowdown")
 
     elif command == "stop":
