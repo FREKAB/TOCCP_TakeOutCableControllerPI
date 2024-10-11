@@ -171,7 +171,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("motor/control")
 
 def on_message(client, userdata, msg):
-    global motor_running, last_manual_run_time, motor_speed, manual_mode
+    global motor_running, last_manual_run_time, motor_speed, manual_mode, direction
     command = msg.payload.decode().strip().lower()
 
     if command == "run manual":
@@ -180,9 +180,10 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)
+            direction = GPIO.HIGH if motor_running is True else GPIO.LOW
             motor_running = True
             motor_speed = 0.0001
-            print("Motor started manually")
+            print(f"Motor started manually: {direction}")
 
     elif command == "slowdown":
         motor_speed = 0.005  # Increase sleep time to slow down the motor
