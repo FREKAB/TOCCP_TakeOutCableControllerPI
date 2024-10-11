@@ -190,10 +190,6 @@ def on_message(client, userdata, msg):
     elif command == "stop":
         stop_motor()
 
-    # Handle rotation commands with direction and steps
-    else:
-        try:
-      
 
 # Motor control loop for "run manual"
 def motor_control_loop():
