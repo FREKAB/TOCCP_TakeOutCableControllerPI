@@ -250,11 +250,6 @@ def on_message(client, userdata, msg):
 
 # MQTT and motor control setup
 def setup():
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(PUL, GPIO.OUT)
-    GPIO.setup(DIR, GPIO.OUT)
-    GPIO.setup(ENABLE_PIN, GPIO.OUT)
-    GPIO.output(ENABLE_PIN, GPIO.HIGH)
 
     client = mqtt.Client()
     client.on_connect = on_connect
