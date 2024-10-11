@@ -179,7 +179,7 @@ def on_message(client, userdata, msg):
     # Handle 'run manual' mode
     if command == "run manual":
 
-
+        print("run")
     
 
     # Handle 'slowdown' command to adjust motor speed
