@@ -170,28 +170,6 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("motor/control")
 
-# MQTT callback functions
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
-    client.subscribe("motor/control")
-
-# Motor control loop for "run manual"
-def motor_control_loop():
-    global motor_running, last_manual_run_time, motor_speed, manual_mode
-    while True:
-        if motor_running:
-            # Set direction to GPIO.HIGH for forward movement
-            GPIO.output(DIR, GPIO.LOW)
-            run_motor(GPIO.HIGH, motor_speed)
-
-            # Check timeout for manual mode
-            if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
-                print("Timeout, stopping motor")
-                stop_motor()
-
-        time.sleep(0.0001)  # Adjust this delay for smoother operation
-
-# MQTT `on_message` function for handling commands
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     command = msg.payload.decode().strip().lower()
@@ -199,31 +177,33 @@ def on_message(client, userdata, msg):
     if command == "run manual":
         last_manual_run_time = time.time()
         manual_mode = True  # Mark motor as in manual mode
-        motor_speed = 0.005  # Set speed for manual mode
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)
+            GPIO.output(DIR, GPIO.LOW)  # Set default direction (adjust as needed for forward)
             motor_running = True
+            motor_speed = 0.0001
             print("Motor started manually")
 
     elif command == "slowdown":
-        motor_speed = 0.005  # Increase delay to slow down
+        motor_speed = 0.005  # Increase sleep time to slow down the motor
+        GPIO.output(DIR, GPIO.LOW)  # Set default direction for slowdown (adjust as needed)
         print("MQTT command: slowdown")
 
     elif command == "stop":
         stop_motor()
 
     else:
+        # Handle rotation command (normal operation)
         try:
-            command = float(command)
-            steps = int(abs(command) * steps_per_rotation)
+            command = float(msg.payload.decode().strip())
+            steps = int(abs(command) * steps_per_rotation)  # Convert to rotations to steps
             if steps > 0:
                 direction = GPIO.HIGH if command > 0 else GPIO.LOW
                 print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
-                GPIO.output(ENABLE_PIN, GPIO.LOW)
+                GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
                 GPIO.output(DIR, direction)
                 motor_running = True
-
                 for _ in range(steps):
                     if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                         emergency_brake()
@@ -233,15 +213,28 @@ def on_message(client, userdata, msg):
                         break
                     if not motor_running:
                         break
-                    run_motor(direction, motor_speed)
-
+                    run_motor(direction)
                 motor_running = False
-                GPIO.output(ENABLE_PIN, GPIO.HIGH)
+                GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor after movement
         except ValueError:
             print(f"Unknown command: {command}")
 
 
+# Motor control loop to monitor "run manual" heartbeat
+def motor_control_loop():
+    global motor_running, last_manual_run_time, motor_speed, manual_mode
+    while True:
+        if motor_running:
+            # Set the direction for manual mode; adjust `GPIO.LOW` or `GPIO.HIGH` as required
+            GPIO.output(DIR, GPIO.LOW if manual_mode else DIR)
+            run_motor(GPIO.LOW, motor_speed)
 
+            # Check timeout only if in manual mode
+            if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
+                print("Timeout, stopping motor")
+                stop_motor()
+
+        time.sleep(0.0001)
 
 
 
