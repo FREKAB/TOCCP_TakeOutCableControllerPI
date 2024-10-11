@@ -28,7 +28,7 @@ GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # Global variables
 emergency_stop = False
 motor_running = False
-motor_speed = 0.0001  # Default motor speed
+motor_speed = 0.001  # Default motor speed
 manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
 timeout_threshold = 1  # Timeout threshold for manual run in seconds
@@ -180,7 +180,6 @@ def on_message(client, userdata, msg):
     if command == "run manual":
         last_manual_run_time = time.time()
         manual_mode = True  # Mark as manual mode
-        motor_speed = 0.0001  # Set consistent speed for manual mode
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
@@ -190,7 +189,6 @@ def on_message(client, userdata, msg):
 
     # Handle 'slowdown' command to adjust motor speed
     elif command == "slowdown":
-        motor_speed = 0.5  # Increase delay for slower operation
         print("Motor slowdown activated")
 
     # Handle stop command
