@@ -180,14 +180,25 @@ def motor_control_loop():
     direction = GPIO.HIGH  # Set the default direction to forward for manual mode
     while True:
         if motor_running:
-            GPIO.output(DIR, direction)  # Set direction for manual mode
-            run_motor(direction, motor_speed)  # Use the direction in `run_motor`
+            # Check for emergency stop before running motor step
+            if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                emergency_brake()
+                # Wait for emergency stop to be released
+                while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
+                    time.sleep(0.01)
+                release_emergency_brake()
 
+            # Run motor in the specified direction with the set speed
+            GPIO.output(DIR, direction)  # Set direction for manual mode
+            run_motor(direction, motor_speed)
+
+            # Check if timeout has been reached in manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
                 stop_motor()
 
         time.sleep(0.0001)
+
 
 
 def on_message(client, userdata, msg):
@@ -239,12 +250,6 @@ def on_message(client, userdata, msg):
                 GPIO.output(ENABLE_PIN, GPIO.HIGH)
         except ValueError:
             print(f"Unknown command: {command}")
-
-
-
-
-
-
 
 
 # MQTT and motor control setup
