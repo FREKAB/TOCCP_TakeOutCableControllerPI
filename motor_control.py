@@ -43,7 +43,7 @@ def reset_motor_driver():
     print("Motor driver reset complete.")
 
 # Motor control functions
-def run_motor(direction, speed=0.1):
+def run_motor(direction, speed=0.001):
     GPIO.output(DIR, direction)
     GPIO.output(PUL, GPIO.LOW)
     time.sleep(speed)
@@ -188,7 +188,7 @@ def motor_control_loop():
                 release_emergency_brake()
 
             # Run motor in the specified direction with the set speed
-            run_motor(direction, motor_speed)
+            run_motor(direction, motor_speed=0.1)
 
             # Check if timeout has been reached in manual mode
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
@@ -214,7 +214,6 @@ def on_message(client, userdata, msg):
             print(f"Motor started manually in forward direction{motor_speed}")
 
     elif command == "slowdown":
-        manual_mode = True
         print("MQTT command: slowdown")
 
     elif command == "stop":
