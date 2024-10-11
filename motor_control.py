@@ -177,10 +177,11 @@ def on_connect(client, userdata, flags, rc):
 
 def motor_control_loop():
     global motor_running, last_manual_run_time, motor_speed, manual_mode
+    direction = GPIO.HIGH  # Set the default direction to forward for manual mode
     while True:
         if motor_running:
-            # Explicitly set direction to GPIO.HIGH for forward in manual mode
-            run_motor(GPIO.HIGH, motor_speed)
+            GPIO.output(DIR, direction)  # Set direction for manual mode
+            run_motor(direction, motor_speed)  # Use the direction in `run_motor`
 
             if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
                 print("Timeout, stopping motor")
@@ -189,7 +190,6 @@ def motor_control_loop():
         time.sleep(0.0001)
 
 
-# MQTT `on_message` function for handling commands
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
     command = msg.payload.decode().strip().lower()
@@ -201,10 +201,12 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
+            GPIO.output(DIR, GPIO.HIGH)  # Set direction to forward for manual mode
             motor_running = True
             print("Motor started manually in forward direction")
 
     elif command == "slowdown":
+        GPIO.output(DIR, GPIO.HIGH)  # Set direction explicitly for slowdown
         motor_speed = 0.005  # Slow down the motor
         print("MQTT command: slowdown")
 
@@ -217,9 +219,9 @@ def on_message(client, userdata, msg):
             steps = int(abs(command) * steps_per_rotation)
             if steps > 0:
                 direction = GPIO.HIGH if command > 0 else GPIO.LOW
+                GPIO.output(DIR, direction)  # Set direction for normal commands
                 print(f"MQTT command: {'forward' if command > 0 else 'backward'} for {steps} steps")
                 GPIO.output(ENABLE_PIN, GPIO.LOW)
-                GPIO.output(DIR, direction)
                 motor_running = True
 
                 for _ in range(steps):
@@ -237,6 +239,7 @@ def on_message(client, userdata, msg):
                 GPIO.output(ENABLE_PIN, GPIO.HIGH)
         except ValueError:
             print(f"Unknown command: {command}")
+
 
 
 
