@@ -184,7 +184,7 @@ def on_message(client, userdata, msg):
 
         if not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
-            GPIO.output(DIR, GPIO.LOW)         # Default direction (adjust if needed)
+            GPIO.output(DIR, GPIO.HIGH)         # Default direction (adjust if needed)
             motor_running = True
             print("Motor started in manual mode")
 
