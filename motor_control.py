@@ -227,7 +227,7 @@ def on_message(client, userdata, msg):
 
 # Motor control loop for "run manual"
 def motor_control_loop():
-    global motor_running, last_manual_run_time, motor_speed, manual_mode, motor_speed
+    global motor_running, last_manual_run_time, motor_speed, manual_mode
 
     while True:
         if motor_running:
