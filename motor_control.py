@@ -11,6 +11,8 @@ FWD_BUTTON = 16
 BWD_BUTTON = 26
 STOP_BUTTON = 25
 EMERGENCY_STOP = 24
+Test1 = 22
+Test_1 = 23
 
 steps_per_rotation = 1600
 debounce_time = 20  # millisecond
@@ -42,6 +44,19 @@ def reset_motor_driver():
     time.sleep(0.1)
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
     print("Motor driver reset complete.")
+
+def debug_initial_button_states():
+    print("Initial FWD_BUTTON state:", GPIO.input(FWD_BUTTON))
+    print("Initial BWD_BUTTON state:", GPIO.input(BWD_BUTTON))
+    print("Initial STOP_BUTTON state:", GPIO.input(STOP_BUTTON))
+    print("Initial EMERGENCY_STOP state:", GPIO.input(EMERGENCY_STOP))
+    print("Initial 22 state:", GPIO.input(Test1))
+    print("Initial 23 state:", GPIO.input(Test_1))
+
+
+# Call this function at the start of `start()` to print button states
+debug_initial_button_states()
+
 
 # Motor control functions
 def run_motor(direction, speed=0.001):
