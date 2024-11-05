@@ -82,6 +82,7 @@ def check_buttons():
             # Acceleration phase
             for i in range(accel_steps):
                 if GPIO.input(FWD_BUTTON) == GPIO.HIGH:
+                    print("Forward button pressed")
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
                 GPIO.output(PUL, GPIO.HIGH)
@@ -119,6 +120,7 @@ def check_buttons():
             # Acceleration phase
             for i in range(accel_steps):
                 if GPIO.input(BWD_BUTTON) == GPIO.HIGH:
+                    print("Backward button pressed")
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
                 GPIO.output(PUL, GPIO.HIGH)
