@@ -74,10 +74,8 @@ def check_buttons():
     start_speed = 0.001
     accel_steps = 1600
 
-    GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, bouncetime=debounce_time)  # Debounced edge detection for FWD_BUTTON
-
     while True:
-        # Check if FWD_BUTTON was pressed and start motor if not already running
+        # Detect FWD_BUTTON press with the event detection already set in setup()
         if GPIO.event_detected(FWD_BUTTON) and not motor_running:
             print("Detected FWD_BUTTON press (initial check)")
             motor_running = True
@@ -262,12 +260,21 @@ def motor_control_loop():
 
 
 # MQTT and motor control setup
+# MQTT and motor control setup
 def setup():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(PUL, GPIO.OUT)
     GPIO.setup(DIR, GPIO.OUT)
     GPIO.setup(ENABLE_PIN, GPIO.OUT)
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
+
+    GPIO.setup(FWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(BWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(STOP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    # Add event detection for FWD_BUTTON only once here
+    GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, bouncetime=debounce_time)
 
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -277,6 +284,7 @@ def setup():
     client.connect(mqtt_broker_ip, 1883, 60)
 
     return client
+
 
 # Start the system
 def start():
