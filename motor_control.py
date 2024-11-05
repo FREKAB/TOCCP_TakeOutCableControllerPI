@@ -74,16 +74,20 @@ def check_buttons():
     start_speed = 0.001
     accel_steps = 1600
 
+    GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, bouncetime=debounce_time)  # Debounced edge detection for FWD_BUTTON
+
     while True:
-        if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
+        # Check if FWD_BUTTON was pressed and start motor if not already running
+        if GPIO.event_detected(FWD_BUTTON) and not motor_running:
             print("Detected FWD_BUTTON press (initial check)")
+            motor_running = True
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
 
             # Acceleration phase
             for i in range(accel_steps):
-                if GPIO.input(FWD_BUTTON) == GPIO.HIGH:
-                    print("Forward button pressed")
+                if GPIO.input(FWD_BUTTON) == GPIO.HIGH:  # Button release detected
+                    print("Forward button released during acceleration")
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
                 GPIO.output(PUL, GPIO.HIGH)
@@ -91,6 +95,7 @@ def check_buttons():
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(current_speed)
                 
+                # Check emergency stop during acceleration
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
@@ -100,7 +105,8 @@ def check_buttons():
 
             # Constant speed phase
             while GPIO.input(FWD_BUTTON) == GPIO.LOW:
-                print("Detected FWD_BUTTON press (initial)")
+                print("Motor running at constant speed (forward)")
+                # Emergency stop check in constant speed phase
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
@@ -112,8 +118,9 @@ def check_buttons():
                     GPIO.output(PUL, GPIO.LOW)
                     time.sleep(max_speed)
 
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
-            print("Forward button released")
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable motor when button released
+            motor_running = False  # Reset motor state
+            print("Forward button released, motor stopped")
 
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Detected BWD_BUTTON press (initial check)")
