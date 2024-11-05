@@ -26,6 +26,8 @@ GPIO.setup(FWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(BWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(STOP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(Test1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(Test_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Global variables
 emergency_stop = False
