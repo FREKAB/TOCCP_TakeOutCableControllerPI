@@ -174,7 +174,7 @@ def check_buttons():
                 time.sleep(0.01)  # Wait for the emergency stop to be released
             release_emergency_brake()
 
-        time.sleep(0.01)  # Small delay to prevent excessive CPU usage
+        time.sleep(0.5)  # Small delay to prevent excessive CPU usage
 
 
 # MQTT callback functions
