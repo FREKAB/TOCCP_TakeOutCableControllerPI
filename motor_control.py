@@ -77,6 +77,10 @@ def check_buttons():
     while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Detected FWD_BUTTON press (initial check)")
+            time.sleep(0.02)  # 20 ms debounce delay
+        if GPIO.input(FWD_BUTTON) == GPIO.LOW:  # Re-check to confirm it's still pressed
+                # Proceed with motor control logic
+
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
 
