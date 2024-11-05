@@ -33,6 +33,31 @@ manual_mode = False  # To track if the motor is running in manual mode
 last_manual_run_time = 0
 timeout_threshold = 1  # Timeout threshold for manual run in seconds
 
+def debug_initial_button_states():
+    print("Initial FWD_BUTTON state:", GPIO.input(FWD_BUTTON))
+    print("Initial BWD_BUTTON state:", GPIO.input(BWD_BUTTON))
+    print("Initial STOP_BUTTON state:", GPIO.input(STOP_BUTTON))
+    print("Initial EMERGENCY_STOP state:", GPIO.input(EMERGENCY_STOP))
+
+# Call this function at the start of `start()` to print button states
+debug_initial_button_states()
+
+def setup_gpio():
+    GPIO.cleanup()
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(PUL, GPIO.OUT)
+    GPIO.setup(DIR, GPIO.OUT)
+    GPIO.setup(ENABLE_PIN, GPIO.OUT)
+    GPIO.setup(FWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(BWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(STOP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+# Call this function in your setup
+setup_gpio()
+
+
+
 # Reset motor driver function
 def reset_motor_driver():
     print("Resetting motor driver...")
@@ -66,6 +91,7 @@ def release_emergency_brake():
     GPIO.output(ENABLE_PIN, GPIO.LOW)  # Re-enable the motor
     print("Emergency brake released")
 
+debounce_time = 50  # Increase debounce time
 
 # Button handling logic
 def check_buttons():
