@@ -17,7 +17,6 @@ debounce_time = 20  # millisecond
 
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
-GPIO.cleanup()
 GPIO.setup(PUL, GPIO.OUT)
 GPIO.setup(DIR, GPIO.OUT)
 GPIO.setup(ENABLE_PIN, GPIO.OUT)
@@ -76,17 +75,13 @@ def check_buttons():
     accel_steps = 1600
 
     while True:
-        # Detect FWD_BUTTON press with the event detection already set in setup()
-        if GPIO.event_detected(FWD_BUTTON) and not motor_running:
-            print("Detected FWD_BUTTON press (initial check)")
-            motor_running = True
+        if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
 
             # Acceleration phase
             for i in range(accel_steps):
-                if GPIO.input(FWD_BUTTON) == GPIO.HIGH:  # Button release detected
-                    print("Forward button released during acceleration")
+                if GPIO.input(FWD_BUTTON) == GPIO.HIGH:
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
                 GPIO.output(PUL, GPIO.HIGH)
@@ -94,7 +89,6 @@ def check_buttons():
                 GPIO.output(PUL, GPIO.LOW)
                 time.sleep(current_speed)
                 
-                # Check emergency stop during acceleration
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
@@ -104,8 +98,6 @@ def check_buttons():
 
             # Constant speed phase
             while GPIO.input(FWD_BUTTON) == GPIO.LOW:
-                print("Motor running at constant speed (forward)")
-                # Emergency stop check in constant speed phase
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
@@ -117,19 +109,16 @@ def check_buttons():
                     GPIO.output(PUL, GPIO.LOW)
                     time.sleep(max_speed)
 
-            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable motor when button released
-            motor_running = False  # Reset motor state
-            print("Forward button released, motor stopped")
+            GPIO.output(ENABLE_PIN, GPIO.HIGH)  # Disable the motor when button is released
+            print("Forward button released")
 
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
-            print("Detected BWD_BUTTON press (initial check)")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
             
             # Acceleration phase
             for i in range(accel_steps):
                 if GPIO.input(BWD_BUTTON) == GPIO.HIGH:
-                    print("Backward button pressed")
                     break
                 current_speed = start_speed - (start_speed - max_speed) * (i / accel_steps)
                 GPIO.output(PUL, GPIO.HIGH)
@@ -146,7 +135,6 @@ def check_buttons():
 
             # Constant speed phase
             while GPIO.input(BWD_BUTTON) == GPIO.LOW:
-                print("Detected BWD_BUTTON press (initial)")
                 if GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
                     emergency_brake()
                     while GPIO.input(EMERGENCY_STOP) == GPIO.LOW:
@@ -174,7 +162,7 @@ def check_buttons():
                 time.sleep(0.01)  # Wait for the emergency stop to be released
             release_emergency_brake()
 
-        time.sleep(0.5)  # Small delay to prevent excessive CPU usage
+        time.sleep(0.01)  # Small delay to prevent excessive CPU usage
 
 
 # MQTT callback functions
@@ -261,21 +249,12 @@ def motor_control_loop():
 
 
 # MQTT and motor control setup
-# MQTT and motor control setup
 def setup():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(PUL, GPIO.OUT)
     GPIO.setup(DIR, GPIO.OUT)
     GPIO.setup(ENABLE_PIN, GPIO.OUT)
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
-
-    GPIO.setup(FWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(BWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(STOP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-    # Add event detection for FWD_BUTTON only once here
-    GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, bouncetime=debounce_time)
 
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -285,7 +264,6 @@ def setup():
     client.connect(mqtt_broker_ip, 1883, 60)
 
     return client
-
 
 # Start the system
 def start():
