@@ -7,7 +7,7 @@ import threading
 PUL = 17
 DIR = 27
 ENABLE_PIN = 12
-FWD_BUTTON = 22
+FWD_BUTTON = 16
 BWD_BUTTON = 23
 STOP_BUTTON = 25
 EMERGENCY_STOP = 24
@@ -40,6 +40,7 @@ def debug_initial_button_states():
     print("Initial EMERGENCY_STOP state:", GPIO.input(EMERGENCY_STOP))
 
 # Call this function at the start of `start()` to print button states
+time.sleep(1)
 debug_initial_button_states()
 
 def setup_gpio():
