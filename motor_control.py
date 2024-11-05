@@ -11,8 +11,6 @@ FWD_BUTTON = 16
 BWD_BUTTON = 26
 STOP_BUTTON = 25
 EMERGENCY_STOP = 24
-Test1 = 22
-Test_1 = 23
 
 steps_per_rotation = 1600
 debounce_time = 20  # millisecond
@@ -26,8 +24,6 @@ GPIO.setup(FWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(BWD_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(STOP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(EMERGENCY_STOP, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(Test1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(Test_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Global variables
 emergency_stop = False
@@ -46,19 +42,6 @@ def reset_motor_driver():
     time.sleep(0.1)
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
     print("Motor driver reset complete.")
-
-def debug_initial_button_states():
-    print("Initial FWD_BUTTON state:", GPIO.input(FWD_BUTTON))
-    print("Initial BWD_BUTTON state:", GPIO.input(BWD_BUTTON))
-    print("Initial STOP_BUTTON state:", GPIO.input(STOP_BUTTON))
-    print("Initial EMERGENCY_STOP state:", GPIO.input(EMERGENCY_STOP))
-    print("Initial 22 state:", GPIO.input(Test1))
-    print("Initial 23 state:", GPIO.input(Test_1))
-
-
-# Call this function at the start of `start()` to print button states
-debug_initial_button_states()
-
 
 # Motor control functions
 def run_motor(direction, speed=0.001):
@@ -93,6 +76,7 @@ def check_buttons():
 
     while True:
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
+            print("Forward button released")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
 
@@ -130,6 +114,7 @@ def check_buttons():
             print("Forward button released")
 
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
+            print("Backward button pressed")
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.HIGH)  # Set direction to backward
             
@@ -182,7 +167,6 @@ def check_buttons():
         time.sleep(0.01)  # Small delay to prevent excessive CPU usage
 
 
-# MQTT callback functions
 # MQTT callback functions
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
