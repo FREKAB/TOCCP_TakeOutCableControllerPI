@@ -73,6 +73,8 @@ def check_buttons():
     max_speed = 0.0002
     start_speed = 0.001
     accel_steps = 1600
+    # Set up event detection on FWD_BUTTON
+    GPIO.add_event_detect(FWD_BUTTON, GPIO.FALLING, bouncetime=20)  # Detect FALLING edge with debounce
 
     while True:
         # Print GPIO state for debugging
@@ -83,10 +85,11 @@ def check_buttons():
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Detected FWD_BUTTON press (initial check)")
             time.sleep(0.02)  # First debounce delay
-            if GPIO.input(FWD_BUTTON) == GPIO.LOW:  # Confirm button is still pressed
-                print("Confirmed FWD_BUTTON press after debounce")
-                GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable motor
-                GPIO.output(DIR, GPIO.LOW)  # Set forward direction
+            if GPIO.event_detected(FWD_BUTTON):
+                print("FWD_BUTTON edge detected")
+                # Now proceed with motor control only if edge is detected, not on every loop
+                GPIO.output(ENABLE_PIN, GPIO.LOW)
+                GPIO.output(DIR, GPIO.LOW)
 
                 # Acceleration phase
                 for i in range(accel_steps):
@@ -125,7 +128,7 @@ def check_buttons():
                 print("Forward button released after motor run")
             else:
                 print("False button press detected and debounced")
-                
+
 
         elif GPIO.input(BWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Detected BWD_BUTTON press (initial check)")
