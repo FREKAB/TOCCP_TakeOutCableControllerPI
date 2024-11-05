@@ -17,6 +17,7 @@ debounce_time = 20  # millisecond
 
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
+GPIO.cleanup()
 GPIO.setup(PUL, GPIO.OUT)
 GPIO.setup(DIR, GPIO.OUT)
 GPIO.setup(ENABLE_PIN, GPIO.OUT)
