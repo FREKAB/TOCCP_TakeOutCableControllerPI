@@ -78,6 +78,7 @@ def check_buttons():
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             GPIO.output(ENABLE_PIN, GPIO.LOW)  # Enable the motor
             GPIO.output(DIR, GPIO.LOW)  # Set direction to forward
+            print("Forward button pressed")
 
             # Acceleration phase
             for i in range(accel_steps):
