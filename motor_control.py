@@ -75,6 +75,9 @@ def check_buttons():
     accel_steps = 1600
 
     while True:
+        print(f"FWD_BUTTON: {GPIO.input(FWD_BUTTON)}, BWD_BUTTON: {GPIO.input(BWD_BUTTON)}, EMERGENCY_STOP: {GPIO.input(EMERGENCY_STOP)}")
+        time.sleep(1)  # Adjust delay as needed to reduce log spam
+
         if GPIO.input(FWD_BUTTON) == GPIO.LOW and not motor_running:
             print("Detected FWD_BUTTON press (initial check)")
             time.sleep(0.02)  # 20 ms debounce delay
