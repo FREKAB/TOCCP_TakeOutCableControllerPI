@@ -174,11 +174,12 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
-
+    
     command = msg.payload.decode().strip().lower()
 
     # Handle 'run manual' mode
     if command == "run manual":
+        GPIO.cleanup()
         last_manual_run_time = time.time()
         manual_mode = True  # Mark as manual mode
 
