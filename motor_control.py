@@ -241,7 +241,7 @@ def motor_control_loop():
             time.sleep(0.0001)
 
 
-        time.sleep(0.0001)  # Small delay for smoother operation
+        time.sleep(0.001)  # Small delay for smoother operation
 
 
 
