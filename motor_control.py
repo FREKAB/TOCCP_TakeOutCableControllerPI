@@ -174,7 +174,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     global motor_running, last_manual_run_time, motor_speed, manual_mode
-    
+
     command = msg.payload.decode().strip().lower()
 
     # Handle 'run manual' mode
@@ -240,8 +240,12 @@ def motor_control_loop():
             GPIO.output(PUL, GPIO.HIGH)
             time.sleep(0.0001)
 
+            # Timeout check for manual mode
+            if manual_mode and time.time() - last_manual_run_time > timeout_threshold:
+                print("Timeout reached in manual mode, stopping motor")
+                stop_motor()
 
-        time.sleep(0.001)  # Small delay for smoother operation
+        time.sleep(0.0001)  # Small delay for smoother operation
 
 
 
