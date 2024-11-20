@@ -179,7 +179,6 @@ def on_message(client, userdata, msg):
 
     # Handle 'run manual' mode
     if command == "run manual":
-        GPIO.cleanup()
         last_manual_run_time = time.time()
         manual_mode = True  # Mark as manual mode
 
