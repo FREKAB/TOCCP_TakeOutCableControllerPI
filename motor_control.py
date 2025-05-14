@@ -70,7 +70,7 @@ def release_emergency_brake():
 # Button handling logic
 def check_buttons():
     global motor_running
-    max_speed = 0.0002
+    max_speed = 0.0005
     start_speed = 0.001
     accel_steps = 1600
 
